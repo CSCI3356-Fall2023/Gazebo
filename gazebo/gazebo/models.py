@@ -28,3 +28,7 @@ class Student(models.Model):
     graduation_year = models.CharField(max_length=10)
 
 # Other models should probably be Watch, SystemState, etc.
+
+class SystemState(models.Model):
+    state = models.CharField(max_Length=10)
+    semester = models.CharField(max_length=15)
