@@ -5,9 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gazebo</title>
-    {% load bootstrap5 %}
+    {% load django_bootstrap5 %}
+    {% load static %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
+    <link rel="icon" href="{% static 'bc_crest 1.png' %}">
 
     {% block styles %}
     {% endblock %}
