@@ -7,8 +7,12 @@ from django.contrib import messages
 import datetime
 
 def list_courses(request):
-    courses = Course.objects.all()
-    return render(request, 'courses/list_courses.html', {'courses': courses})
+    state = status_finder()
+    if state == "closed":
+        return render(request, 'courses/closed.html')
+    else:
+        courses = Course.objects.all()
+        return render(request, 'courses/list_courses.html', {'courses': courses})
 
 def register(request):
     if request.method == 'POST':
@@ -46,23 +50,11 @@ def landing(request):
     return render(request, 'registration/login_and_register.html')
 
 def status_change(request):
-    month = datetime.datetime.now().month
-    semester = ''
-    year = datetime.datetime.now().year
-    if month >= 10 or month < 3:
-        semester = "Spring " + str(year)
-    else:
-        semester = "Fall " + str(year)
-    
-    entry = SystemState.objects.all().filter(semester=semester)
-    state = ''
-    if entry:
-        state = entry[0].state 
-    else:
-        state = "closed"
-        new_entry = SystemState(semester = semester, state = "closed")
-        new_entry.save()
-    
+    semester = sem()
+    entry = SystemState.objects.all().filter(semester=semester)[0]
+    if(request.GET.get('mybtn')):
+        toggle(entry)
+    state = status_finder()
     message = ''
     if state == "open":
         message = semester + " watch period is open"
@@ -71,3 +63,36 @@ def status_change(request):
     else:
         message = "Error"
     return render(request, 'admin/status_change.html', {'message': message})
+
+
+def status_finder():
+    semester = sem()
+    entry = SystemState.objects.all().filter(semester=semester)
+    state = ''
+    if entry:
+        state = entry[0].state 
+    else:
+        state = "closed"
+        new_entry = SystemState(semester = semester, state = state)
+        new_entry.save()
+    return state
+
+def sem():
+    month = datetime.datetime.now().month
+    semester = ''
+    year = datetime.datetime.now().year
+    if month >= 10 or month < 3:
+        semester = "Spring " + str(year)
+    else:
+        semester = "Fall " + str(year)
+    return semester
+
+def toggle(entry):
+    new_state = ""
+    if entry.state == "closed":
+        new_state = "open"
+    else:
+        new_state = "closed"
+    entry.state = new_state
+    entry.save()
+    return new_state
