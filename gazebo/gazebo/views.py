@@ -31,7 +31,10 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('list_courses')
+                if user.is_superuser:
+                    return redirect('status_change')
+                else: 
+                    return redirect('list_courses')
         else:
             messages.error(request,"Invalid username or password.")
     form = AuthenticationForm()
@@ -41,6 +44,5 @@ def login_view(request):
 def landing(request):
     return render(request, 'registration/login_and_register.html')
 
-def status(request):
-
+def status_change(request):
     return render(request, 'admin/status_change.html')
