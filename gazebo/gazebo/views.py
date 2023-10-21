@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
-from .models import Course
+from .models import Course, SystemState
 from .forms import RegisterForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+import datetime
 
 def list_courses(request):
     courses = Course.objects.all()
@@ -45,4 +46,28 @@ def landing(request):
     return render(request, 'registration/login_and_register.html')
 
 def status_change(request):
-    return render(request, 'admin/status_change.html')
+    month = datetime.datetime.now().month
+    semester = ''
+    year = datetime.datetime.now().year
+    if month >= 10 or month < 3:
+        semester = "Spring " + str(year)
+    else:
+        semester = "Fall " + str(year)
+    
+    entry = SystemState.objects.all().filter(semester=semester)
+    state = ''
+    if entry:
+        state = entry[0].state 
+    else:
+        state = "closed"
+        new_entry = SystemState(semester = semester, state = "closed")
+        new_entry.save()
+    
+    message = ''
+    if state == "open":
+        message = semester + " watch period is open"
+    elif state == "closed":
+        message = semester + " watch period is closed"
+    else:
+        message = "Error"
+    return render(request, 'admin/status_change.html', {'message': message})
