@@ -4,6 +4,7 @@ from .models import Course, SystemState
 from .forms import RegisterForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 import datetime
 
 def list_courses(request):
@@ -54,6 +55,12 @@ def status_change(request):
     entry = SystemState.objects.all().filter(semester=semester)[0]
     if(request.GET.get('mybtn')):
         toggle(entry)
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    message = make_message()
+    return render(request, 'admin/status_change.html', {'message': message})
+
+def make_message():
+    semester = sem()
     state = status_finder()
     message = ''
     if state == "open":
@@ -62,9 +69,7 @@ def status_change(request):
         message = semester + " watch period is closed"
     else:
         message = "Error"
-    return render(request, 'admin/status_change.html', {'message': message})
-
-
+    return message
 def status_finder():
     semester = sem()
     entry = SystemState.objects.all().filter(semester=semester)
