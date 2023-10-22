@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from .models import Course, SystemState
-from .forms import RegisterForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 import datetime
+from .forms import StudentSignUpForm, AdminSignUpForm
 
 def list_courses(request):
     state = status_finder()
@@ -15,17 +15,29 @@ def list_courses(request):
         courses = Course.objects.all()
         return render(request, 'courses/list_courses.html', {'courses': courses})
 
-def register(request):
+def student_register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = StudentSignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Log the user in.
             login(request, user)
             return redirect('list_courses')
     else:
-        form = RegisterForm()
+        form = StudentSignUpForm(initial={'school':'CSOM'})
     return render(request, 'registration/registration.html', {'form': form})
+
+def admin_register(request):
+    if request.method == 'POST':
+        form = AdminSignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('list_courses')
+    else:
+        form = AdminSignUpForm()
+    return render(request, 'registration/registration.html', {'form': form})
+
+
 
 # need view function to redirect to course listing (/courses) or dashboard view instead of /accounts/profile
 def login_view(request):

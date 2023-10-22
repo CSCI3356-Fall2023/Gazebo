@@ -70,7 +70,56 @@
             }
             .slogan-text{
                 font-size: 24px;
+            }       
+            .button-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
+            
+            .custom-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 5px 20px;
+                width: 80px;
+                height: 80px;
+            } 
+            .icon-container img {
+                max-width: 50px; 
+                height: 50px; 
+                margin-bottom: 5px;
+            }
+            .button-wrapper {
+                margin: 0 10px;
+            }
+            .square-button {
+                width: 120px;
+                height: 120px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            } 
+            .admin-icon {
+                width: 60px;
+            }
+            .sso-button {
+                display: flex;
+                align-items: center;
+            }
+            .sso-icon {
+                width: 20px; 
+                height: auto;
+                margin-right: 8px;
+            }
+            
+                           
+
+            
+            
+                         
     </style>
 
 {% endblock %}
@@ -83,12 +132,33 @@
             <p class="gazebo-text">GAZEBO</p>
             <p class="slogan-text">Watch, Notify, Enroll</p>
             <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest">
-        </div>
+        </div>      
         <div class="white-section">
-            <h3>First time here?</h3>
-            <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+            <h3>First time here? Register:</h3>
+            <div class="button-container">
+                <div class="button-wrapper">
+                    <a href="{% url 'student_register' %}" class="btn btn-secondary custom-btn square-button">
+                        <div class="icon-container">
+                            <img src="{% static 'student2.png' %}" alt="Student Icon">
+                        </div>
+                        Student
+                    </a>
+                </div>
+                <div class="button-wrapper">
+                    <a href="{% url 'admin_register' %}" class="btn btn-secondary custom-btn square-button">
+                        <div class="icon-container">
+                            <img src="{% static 'admin.png' %}" alt="Admin Icon" class="admin-icon">
+                        </div>
+                        Admin
+                    </a>
+                </div>
+            </div>
+            
             <h3>or</h3>
-            <a href="{% url 'login' %}" class="btn btn-secondary">Sign in With SSO</a>
+            <a href="{% url 'login' %}" class="btn btn-secondary sso-button">
+                <img src="{% static 'key.png' %}" alt="Key Icon" class="sso-icon">
+                Sign in with SSO
+            </a>
         </div>
     </div>
     {% block inner_content %}
