@@ -64,16 +64,15 @@ def landing(request):
 
 def status_change(request):
     semester = sem()
+    state = status_finder()
     entry = SystemState.objects.all().filter(semester=semester)[0]
     if(request.GET.get('mybtn')):
         toggle(entry)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    message = make_message()
+    message = make_message(semester, state)
     return render(request, 'admin/status_change.html', {'message': message})
 
-def make_message():
-    semester = sem()
-    state = status_finder()
+def make_message(semester, state):
     message = ''
     if state == "open":
         message = semester + " watch period is open"
@@ -82,6 +81,7 @@ def make_message():
     else:
         message = "Error"
     return message
+
 def status_finder():
     semester = sem()
     entry = SystemState.objects.all().filter(semester=semester)
@@ -98,7 +98,9 @@ def sem():
     month = datetime.datetime.now().month
     semester = ''
     year = datetime.datetime.now().year
-    if month >= 10 or month < 3:
+    if month >= 10:
+        semester = "Spring " + str(year + 1)
+    elif month < 3:
         semester = "Spring " + str(year)
     else:
         semester = "Fall " + str(year)
