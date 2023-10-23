@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-{{ email }}
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -89,6 +88,7 @@
 </style>
 
 <div class="header">
+    {{ email }}
     <div class="left-content">
         <div class="watchlist">
             Dashboard
@@ -107,19 +107,21 @@
 
 
 <h1 class="toggle-header">Toggle Registration Period State</h1>
-<form action="#" method="get">
-    <input type="submit" class="btn" value="Change State" name="mybtn">
-</form>
+
 
 <div class="gray-bar">
     <div class="semester-label">Semester</div>
     <div class="semester-value">Spring 2024</div>
     <div class="change-state-label">Change State</div>
-    <label class="switch">
-        <input type="checkbox">
+    <!-- <label class="switch">
+        <input type="submit" name="mybtn">
         <span class="slider"></span>
-    </label>
+    </label> -->
+    <form action="#" method="get" class="switch">
+        <input type="submit" class="slider" value="Toggle" name="mybtn">
+    </form>
+    {{ message }}
 </div>
 
-{{ message }}
+
 {% endblock %}
