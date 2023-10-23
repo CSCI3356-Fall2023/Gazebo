@@ -209,7 +209,7 @@ class StudentSignUpForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('name', 'username', 'email', 'eagle_id', 'password1', 'password2', 'major', 'minor')
+        fields = ('username', 'email', 'eagle_id', 'password1', 'password2', 'major', 'minor')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -235,4 +235,4 @@ class AdminSignUpForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'name','email', 'eagle_id', 'password1', 'password2', 'department')
+        fields = ('username', 'email', 'eagle_id', 'password1', 'password2', 'department')
