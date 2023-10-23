@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext as _
+import gazebo.settings
 
 class Course(models.Model):
     COURSE_TYPES = [
@@ -27,7 +28,7 @@ class Course(models.Model):
     is_open = models.BooleanField()
     
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(gazebo.settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     major = models.CharField(max_length=255)
     minor = models.CharField(max_length=255, blank=True, null=True)
     eagle_id = models.CharField(max_length=10)
@@ -39,7 +40,7 @@ class Watch(models.Model):
     course_id = models.CharField(max_length=10)
     num_students = models.IntegerField(default=0)
 
-class Log(models.model):
+class Log(models.Model):
     student_id = models.CharField(max_length=10)
     timestamp = models.DateTimeField()
     action = models.CharField(max_length=10)
@@ -50,25 +51,11 @@ class SystemState(models.Model):
 
 class CustomUser(AbstractUser):
     eagle_id = models.CharField(max_length=20)
+    email = models.EmailField()
     major = models.CharField(max_length=100, blank=True, null=True)
     minor = models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True, null=True)
 
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name=_('groups'),
-        blank=True,
-        help_text=_(
-            'The groups this user belongs to. A user will get all permissions '
-            'granted to each of their groups.'
-        ),
-        related_name='customuser_set', 
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name=_('user permissions'),
-        blank=True,
-        help_text=_('Specific permissions for this user.'),
-        related_name='customuser_set',  
-    )
+    
+    
 
