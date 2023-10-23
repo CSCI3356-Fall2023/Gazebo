@@ -3,8 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext as _
 
-
-
 class Course(models.Model):
     COURSE_TYPES = [
         ('lecture', 'Lecture'),
@@ -18,11 +16,15 @@ class Course(models.Model):
     description = models.TextField()
     section = models.CharField(max_length=10)
     instructor = models.CharField(max_length=255)
-    date = models.DateField()
-    time = models.TimeField()
+    # look into making days field a list
+    days = models.CharField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
     location = models.CharField(max_length=255)
     capacity = models.IntegerField()
     current_enrollment = models.IntegerField(default=0)
+    num_watches = models.IntegerField()
+    is_open = models.BooleanField()
     
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -31,6 +33,16 @@ class Student(models.Model):
     eagle_id = models.CharField(max_length=10)
     graduation_year = models.CharField(max_length=10)
 
+
+class Watch(models.Model):
+    student_id = models.CharField()
+    course_id = models.CharField()
+    num_students = models.IntegerField()
+
+class Log(models.model):
+    student_id = models.CharField()
+    timestamp = models.DateTimeField()
+    action = models.CharField()
 
 class SystemState(models.Model):
     state = models.CharField(max_length=10)
