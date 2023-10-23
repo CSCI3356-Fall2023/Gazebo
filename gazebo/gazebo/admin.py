@@ -3,8 +3,14 @@ from gazebo.models import Course, Student, SystemState
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ['number', 'name', 'instructor', 'current_enrollment', 'capacity']
-    search_fields = ['name', 'instructor', 'number']
+    list_display = ['number', 'name', 'instructor', 
+                    'current_enrollment', 'capacity', 
+                    'description', 'section', 'days', 
+                    'start_time', 'end_time', 'location',
+                    'num_watches', 'is_open']
+    search_fields = ['name', 'instructor', 'number', 
+                     'is_open', 'days', 'start_time', 
+                     'end_time', 'num_watches', 'location']
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
