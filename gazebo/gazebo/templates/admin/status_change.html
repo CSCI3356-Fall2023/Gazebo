@@ -1,9 +1,124 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Toggle Registration Period State</h1>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        background-color: #800000;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; 
+    }
+    .left-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .watchlist {
+        padding: 10px;
+        font-size: 16px;
+        display: flex;
+    }
+
+    .search-bar {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .toggle-header {
+        text-align: center;
+        font-weight: bold; 
+        margin-top: 20px;   
+        font-size: 1.5em;  
+    }
+    .gray-bar {
+        background-color: gray;   /* Gray background */
+        border-radius: 12px;      /* Rounded corners */
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .semester-label, .semester-value, .change-state-label, .switch {
+        margin: 0 10px;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    input[type="checkbox"] {
+        display: none;
+    }    
+    
+</style>
+
+<div class="header">
+    <div class="left-content">
+        <div class="watchlist">
+            Dashboard
+        </div>
+        <div class="watchlist">
+            Course List
+        </div>
+        <div class="watchlist">
+            Admin Report
+        </div>
+    </div>
+    <div class="search-bar">
+        <input type="search" placeholder="Search">
+    </div>
+</div>
+
+
+<h1 class="toggle-header">Toggle Registration Period State</h1>
 <form action="#" method="get">
     <input type="submit" class="btn" value="Change State" name="mybtn">
 </form>
+
+<div class="gray-bar">
+    <div class="semester-label">Semester</div>
+    <div class="semester-value">Spring 2024</div>
+    <div class="change-state-label">Change State</div>
+    <label class="switch">
+        <input type="checkbox">
+        <span class="slider"></span>
+    </label>
+</div>
+
 {{ message }}
 {% endblock %}
