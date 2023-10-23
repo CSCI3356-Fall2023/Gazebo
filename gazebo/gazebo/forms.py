@@ -205,10 +205,11 @@ class StudentSignUpForm(UserCreationForm):
     school = forms.ChoiceField(choices=SCHOOL_CHOICES)
     major = forms.ChoiceField(choices=[('', '---------')], required=False)
     minor = forms.ChoiceField(choices=[('', '---------')], required=False)
+    email = forms.EmailField()
 
     class Meta:
         model = CustomUser
-        fields = ('name', 'email', 'eagle_id', 'password1', 'password2', 'major', 'minor')
+        fields = ('name', 'username', 'email', 'eagle_id', 'password1', 'password2', 'major', 'minor')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -234,4 +235,4 @@ class AdminSignUpForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('name','email', 'eagle_id', 'password1', 'password2', 'department')
+        fields = ('username', 'name','email', 'eagle_id', 'password1', 'password2', 'department')

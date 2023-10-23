@@ -8,14 +8,16 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 
 def list_courses(request):
+    email = request.user.email;
     state = status_finder()
     if state == "closed":
         return render(request, 'courses/closed.html')
     else:
         courses = Course.objects.all()
-        return render(request, 'courses/list_courses.html', {'courses': courses})
+        return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
 
 def student_register(request):
+    print(request)
     if request.method == 'POST':
         form = StudentSignUpForm(request.POST)
         if form.is_valid():
@@ -24,6 +26,7 @@ def student_register(request):
             return redirect('list_courses')
     else:
         form = StudentSignUpForm(initial={'school':'CSOM'})
+        print("here")
     return render(request, 'registration/registration.html', {'form': form})
 
 def admin_register(request):
@@ -32,7 +35,7 @@ def admin_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('list_courses')
+            return redirect('status_change')
     else:
         form = AdminSignUpForm()
     return render(request, 'registration/registration.html', {'form': form})
@@ -49,7 +52,7 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                if user.is_superuser:
+                if user.department:
                     return redirect('status_change')
                 else: 
                     return redirect('list_courses')
@@ -63,6 +66,7 @@ def landing(request):
     return render(request, 'registration/login_and_register.html')
 
 def status_change(request):
+    email = request.user.email;
     semester = sem()
     state = status_finder()
     entry = SystemState.objects.all().filter(semester=semester)[0]
@@ -70,7 +74,7 @@ def status_change(request):
         toggle(entry)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     message = make_message(semester, state)
-    return render(request, 'admin/status_change.html', {'message': message})
+    return render(request, 'admin/status_change.html', {'message': message, 'email': email})
 
 def make_message(semester, state):
     message = ''
