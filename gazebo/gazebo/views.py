@@ -8,7 +8,7 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 
 def list_courses(request):
-    email = request.user.email;
+    email = request.user.email
     state = status_finder()
     if state == "closed":
         return render(request, 'courses/closed.html')
@@ -66,7 +66,7 @@ def landing(request):
     return render(request, 'registration/login_and_register.html')
 
 def status_change(request):
-    email = request.user.email;
+    email = request.user.email
     semester = sem()
     state = status_finder()
     entry = SystemState.objects.all().filter(semester=semester)[0]
