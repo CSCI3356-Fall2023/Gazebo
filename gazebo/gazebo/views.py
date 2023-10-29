@@ -77,13 +77,7 @@ def status_change(request):
     return render(request, 'admin/status_change.html', {'message': message, 'email': email})
 
 def make_message(semester, state):
-    message = ''
-    if state == "open":
-        message = semester + " watch period is open"
-    elif state == "closed":
-        message = semester + " watch period is closed"
-    else:
-        message = "Error"
+    message = semester + " watch period is " + f"{state}"
     return message
 
 def status_finder():
