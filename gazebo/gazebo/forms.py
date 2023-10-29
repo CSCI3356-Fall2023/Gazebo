@@ -201,15 +201,14 @@ SCHOOL_CHOICES = [
     ('LSEHD', 'LSEHD'),
 ]
 
-class StudentSignUpForm(UserCreationForm):
+class StudentSignUpForm(forms.ModelForm):
     school = forms.ChoiceField(choices=SCHOOL_CHOICES)
     major = forms.ChoiceField(choices=[('', '---------')], required=False)
     minor = forms.ChoiceField(choices=[('', '---------')], required=False)
-    email = forms.EmailField()
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'eagle_id', 'password1', 'password2', 'major', 'minor')
+        fields = ('eagle_id', 'school', 'major', 'minor')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -225,7 +224,6 @@ class StudentSignUpForm(UserCreationForm):
         cleaned_data = super().clean()
         school = cleaned_data.get('school')
         major = cleaned_data.get('major')
-        minor = cleaned_data.get('minor')
 
         if school and not major:
             self.add_error('major', 'This field is required.')

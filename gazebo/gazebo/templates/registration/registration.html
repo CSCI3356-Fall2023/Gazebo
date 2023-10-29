@@ -7,64 +7,49 @@
   <div class="white-box">
       <div class="burgundy-section">
         <p class="gazebo-text">GAZEBO</p>
-          <p class= "slogan-text">Watch, Notify, Enroll</p>
-          <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest">
+        <p class="slogan-text">Watch, Notify, Enroll</p>
+        <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest">
       </div>
       <div class="white-section">
         <h2 style="text-align: center;">Register</h2>
-        <form method="post">
+
+        <form method="post" action="{% url 'additional_info' %}">
           {% csrf_token %}
-          <div class="form-group">
-            <label for="id_name">{{ form.name.label_tag }}</label>
-            {{ form.name }}
-        </div>
-          <div class="form-group">
-              <label for="id_email">{{ form.email.label_tag }}</label>
-              {{ form.email }}
-          </div>
-          <div class="form-group">
-            <label for="id_username">{{ form.username.label_tag }}</label>
-            {{ form.username }}
-          </div>
-          <div class="form-group">
+          
+          <div class="form-group {% if form.eagle_id.errors %}has-error{% endif %}">
               <label for="id_eagle_id">Eagle ID: </label>
               {{ form.eagle_id }}
+              {% for error in form.eagle_id.errors %}
+                <span class="help-block">{{ error }}</span>
+              {% endfor %}
           </div>
-          <div class="form-group">
-              <label for="id_password1">{{ form.password1.label_tag }}</label>
-              {{ form.password1 }}
+
+          <div class="form-group {% if form.school.errors %}has-error{% endif %}">
+              <label for="id_school">{{ form.school.label_tag }}</label>
+              {{ form.school }}
+              {% for error in form.school.errors %}
+                <span class="help-block">{{ error }}</span>
+              {% endfor %}
           </div>
-          <div class="form-group">
-              <label for="id_password2">{{ form.password2.label_tag }}</label>
-              {{ form.password2 }}
+
+          <div class="form-group {% if form.major.errors %}has-error{% endif %}">
+              <label for="id_major">{{ form.major.label_tag }}</label>
+              {{ form.major }}
+              {% for error in form.major.errors %}
+                <span class="help-block">{{ error }}</span>
+              {% endfor %}
           </div>
-          {% if form.school %}
-              <div class="form-group">
-                  <label for="id_school">{{ form.school.label_tag }}</label>
-                  {{ form.school }}
-              </div>
-          {% endif %}
-          {% if form.major %}
-              <div class="form-group">
-                  <label for="id_major">{{ form.major.label_tag }}</label>
-                  {{ form.major }}
-              </div>
-          {% endif %}
-          {% if form.minor %}
-              <div class="form-group">
-                  <label for="id_minor">{{ form.minor.label_tag }}</label>
-                  {{ form.minor }}
-              </div>
-          {% endif %}
-          {% if form.department %}
-              <div class="form-group">
-                  <label for="id_department">{{ form.department.label_tag }}</label>
-                  {{ form.department }}
-              </div>
-          {% endif %}
+
+          <div class="form-group {% if form.minor.errors %}has-error{% endif %}">
+              <label for="id_minor">{{ form.minor.label_tag }}</label>
+              {{ form.minor }}
+              {% for error in form.minor.errors %}
+                <span class="help-block">{{ error }}</span>
+              {% endfor %}
+          </div>
+
           <button type="submit">Register</button>
-      </form>      
-      
+        </form>
       </div>
   </div>
 </div>

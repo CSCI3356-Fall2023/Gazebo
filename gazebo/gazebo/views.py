@@ -1,11 +1,125 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login as auth_login, authenticate, get_user_model
 from .models import Course, SystemState
 from django.contrib.auth.forms import AuthenticationForm
+from gazebo.models import CustomUser
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
+from django.core.exceptions import ObjectDoesNotExist
+import re
+
+# OAuth2 Imports
+import json
+from authlib.integrations.django_client import OAuth
+from django.conf import settings
+from django.urls import reverse
+from urllib.parse import quote_plus, urlencode
+
+oauth = OAuth()
+
+oauth.register(
+    "auth0",
+    client_id=settings.AUTH0_CLIENT_ID,
+    client_secret=settings.AUTH0_CLIENT_SECRET,
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
+)
+
+def login(request):
+    return oauth.auth0.authorize_redirect(
+        request, request.build_absolute_uri(reverse("callback"))
+    )
+
+def callback(request):
+    token = oauth.auth0.authorize_access_token(request)
+    userinfo = token.get('userinfo')
+
+    email = userinfo.get("email")
+    name = userinfo.get("name")
+
+    if not is_valid_email(email):
+        messages.error(request, "You must use a BC email to sign in!")
+        return redirect(reverse('landing'))
+
+    User = get_user_model()
+    user, created = User.objects.get_or_create(
+        email=email, 
+        defaults={
+            "username": email, 
+            "first_name": get_first_name(name),
+            "last_name": get_last_name(name)
+        }
+    )
+
+    if created:
+        auth_login(request, user)   
+        request.session['email'] = email
+        return redirect('additional_info')
+
+    auth_login(request, user)
+    return redirect(reverse("list_courses"))
+
+def is_valid_email(email):
+    return email.endswith("@bc.edu")
+
+def get_first_name(name):
+    return name.split()[0] if name else ""
+
+def get_last_name(name):
+    return name.split()[-1] if name and len(name.split()) > 1 else ""
+
+def additional_info(request):
+    email_from_auth0 = request.session.get('email')
+    if request.method == 'POST':
+        form = StudentSignUpForm(request.POST)
+        if form.is_valid():
+            try:
+                user = CustomUser.objects.get(email=email_from_auth0) 
+            except ObjectDoesNotExist:
+                messages.error(request, "User not found.")
+                return render(request, 'registration/registration.html', {'form': form})
+
+            user.eagle_id = form.cleaned_data.get('eagle_id')
+            user.school = form.cleaned_data.get('school')
+            user.major = form.cleaned_data.get('major')
+            user.minor = form.cleaned_data.get('minor')
+            user.save() 
+
+            return redirect(reverse("list_courses"))
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = StudentSignUpForm() 
+
+    return render(request, 'registration/registration.html', {'form': form})
+
+def logout(request):
+    request.session.clear()
+
+    return redirect(
+        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": request.build_absolute_uri(reverse("index")),
+                "client_id": settings.AUTH0_CLIENT_ID,
+            },
+            quote_via=quote_plus,
+        ),
+    )
+
+def index(request):
+    return render(
+        request,
+        "index.html",
+        context={
+            "session": request.session.get("user"),
+            "pretty": json.dumps(request.session.get("user"), indent=4),
+        },
+    )
 
 def list_courses(request):
     email = request.user.email
@@ -17,18 +131,31 @@ def list_courses(request):
         return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
 
 def student_register(request):
-    print(request)
-    if request.method == 'POST':
-        form = StudentSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('list_courses')
-    else:
-        form = StudentSignUpForm(initial={'school':'CSOM'})
-        print("here")
-    return render(request, 'registration/registration.html', {'form': form})
+    return "foo"
+    # form = StudentSignUpForm(request.POST)
+    # if form.is_valid():
+    #     email = form.cleaned_data.get('email')
+    #     is_valid_bc_user = validate_bc_user(email)
+    #     if not is_valid_bc_user:
 
+    # else:
+    #     print(form.errors)
+    #     # validate BC email
+
+    #     # check to see if already in database (don't want duplicates)
+
+    #     # if not, that means first time user --> prompt Google login
+
+    #     # redirect to get additional info (major, minor, etc)
+    #     form = StudentSignUpForm(request.POST)
+    #     if form.is_valid():
+    #         user = form.save()
+    #         login(request, user)
+    #         return redirect('list_courses')
+    #     form = StudentSignUpForm(initial={'school':'CSOM'})
+    # return render(request, 'registration/registration.html', {'form': form})
+
+# admin register is now going to be only done through superuser
 def admin_register(request):
     if request.method == 'POST':
         form = AdminSignUpForm(request.POST)
@@ -42,7 +169,6 @@ def admin_register(request):
 
 
 
-# need view function to redirect to course listing (/courses) or dashboard view instead of /accounts/profile
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gazebo.models import Course, Student, SystemState, CustomUser
+from gazebo.models import Course, SystemState, CustomUser
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
@@ -12,10 +12,6 @@ class CourseAdmin(admin.ModelAdmin):
                      'is_open', 'days', 'start_time', 
                      'end_time', 'num_watches', 'location']
 
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display = ['user', 'major', 'graduation_year']
-    search_fields = ['user__username', 'major']
 
 # Need configuration for other models
 @admin.register(SystemState)

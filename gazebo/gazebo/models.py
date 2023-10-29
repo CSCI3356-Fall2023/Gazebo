@@ -27,14 +27,6 @@ class Course(models.Model):
     num_watches = models.IntegerField(default=0)
     is_open = models.BooleanField()
     
-class Student(models.Model):
-    user = models.OneToOneField(gazebo.settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    major = models.CharField(max_length=255)
-    minor = models.CharField(max_length=255, blank=True, null=True)
-    eagle_id = models.CharField(max_length=10)
-    graduation_year = models.CharField(max_length=10)
-
-
 class Watch(models.Model):
     student_id = models.CharField(max_length=10)
     course_id = models.CharField(max_length=10)
@@ -51,9 +43,9 @@ class SystemState(models.Model):
 
 class CustomUser(AbstractUser):
     eagle_id = models.CharField(max_length=20)
-    email = models.EmailField()
     major = models.CharField(max_length=100, blank=True, null=True)
     minor = models.CharField(max_length=100, blank=True, null=True)
+    is_administrator = models.BooleanField(default=False)
     department = models.CharField(max_length=100, blank=True, null=True)
 
     
