@@ -16,4 +16,5 @@ urlpatterns = [
     # path("", views.index, name="index"),
     path('status/', views.status_change, name='status_change'),
     # path('login/', views.login_view, name='login')
+    path('api/', views.call_api, name='api')
 ]

@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from gazebo.models import CustomUser
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
@@ -16,6 +17,8 @@ from authlib.integrations.django_client import OAuth
 from django.conf import settings
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
+
+import requests
 
 oauth = OAuth()
 
@@ -239,3 +242,15 @@ def toggle(entry):
     entry.state = new_state
     entry.save()
     return new_state
+
+def call_api(endpoint):
+    if endpoint == None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistpersons/90000000")
+    else:
+        response = requests.get("http://localhost:8080/waitlist/waitlistpersons/90000000")
+
+    if response.status_code == 200:
+        data = response.json()
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
