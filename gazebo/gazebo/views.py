@@ -242,15 +242,29 @@ def toggle(entry):
     entry.state = new_state
     entry.save()
     return new_state
-
-def call_api(endpoint):
-    if endpoint == None:
-        response = requests.get("http://localhost:8080/waitlist/waitlistpersons/90000000")
+#two api functions: one for 
+def course_offering_api(request): 
+    code = 'ENGL2170' #turn into searchable parameter later
+    if code is None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
     else:
-        response = requests.get("http://localhost:8080/waitlist/waitlistpersons/90000000")
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}") 
 
     if response.status_code == 200:
         data = response.json()
-        return JsonResponse(data)
+        return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+    
+def waitlist_activity_api(request):
+    code = '952e91af-ffb8-471e-b135-04d6d0b02c62' #turn into searchable parameter later
+    if code is None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
+    else:
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId={code}") 
+
+    if response.status_code == 200:
+        data = response.json()
+        return JsonResponse(data, safe=False)
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)

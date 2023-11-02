@@ -16,5 +16,6 @@ urlpatterns = [
     # path("", views.index, name="index"),
     path('status/', views.status_change, name='status_change'),
     # path('login/', views.login_view, name='login')
-    path('api/', views.call_api, name='api')
+    path('course_offering_api/', views.course_offering_api, name='course_offering_api'),
+    path('waitlist_activity_api/', views.waitlist_activity_api, name='waitlist_activity_api')
 ]
