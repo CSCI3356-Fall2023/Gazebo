@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'gazebo',
     'django_bootstrap5',
+    'MultiSelectField
 ]
 
 MIDDLEWARE = [
