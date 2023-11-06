@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext as _
+from multiselectfield import MultiSelectField
 import gazebo.settings
 
 class Course(models.Model):
@@ -9,6 +10,16 @@ class Course(models.Model):
         ('lecture', 'Lecture'),
         ('lab', 'Lab'),
         ('discussion', 'Discussion'),
+    ]
+
+    DAYS_CHOICES = [
+        ('sunday', 'Sunday'),
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday')
     ]
     
     number = models.CharField(max_length=10)
@@ -18,14 +29,16 @@ class Course(models.Model):
     section = models.CharField(max_length=10)
     instructor = models.CharField(max_length=255)
     # look into making days field a list
-    days = models.CharField(max_length=10)
+    days = MultiSelectField(choices=DAYS_CHOICES, max_choices=3, max_length=3)
     start_time = models.TimeField()
     end_time = models.TimeField()
     location = models.CharField(max_length=255)
     capacity = models.IntegerField(default=0)
     current_enrollment = models.IntegerField(default=0)
     num_watches = models.IntegerField(default=0)
-    is_open = models.BooleanField()
+    is_open = models.BooleanField(default=True)
+    if current_enrollment == capacity:
+        is_open = False
     
 class Watch(models.Model):
     student_id = models.CharField(max_length=10)
