@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        background-color: #800000;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; 
+    }
+    .left-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .gray-bar {
+        background-color: gray;   /* Gray background */
+        border-radius: 12px;      /* Rounded corners */
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50px;
+        height: 50px;
+    }
+    
+</style>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="header">
+        <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest" class="center">
+    </div>
+    <h1>Oops! That wasn't the right email. Please try again with a BC email!
+    </h1>
+</body>
+
+{% endblock %}
