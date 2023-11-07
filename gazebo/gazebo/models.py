@@ -28,7 +28,7 @@ class Course(models.Model):
     section = models.CharField(max_length=10)
     instructor = models.CharField(max_length=255)
     # look into making days field a list
-    days = models.CharTield(max_length=255)
+    days = models.CharField(max_length=255)
     start_time = models.TimeField()
     end_time = models.TimeField()
     location = models.CharField(max_length=255)
