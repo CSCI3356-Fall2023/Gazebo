@@ -24,3 +24,6 @@ sqlparse==0.4.4
 tqdm==4.66.1
 typing_extensions==4.8.0
 urllib3==2.0.6
+crispy-bootstrap5
+django_bootstrap5
+django-multiselectfield

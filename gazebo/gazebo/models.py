@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.forms import JSONField
 from django.utils.translation import gettext as _
 import gazebo.settings
 

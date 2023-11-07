@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
-from .models import Course, SystemState
+from gazebo.models import Course, SystemState
 from django.contrib.auth.forms import AuthenticationForm
 from gazebo.models import CustomUser
 from django.contrib import messages
@@ -19,6 +19,7 @@ from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
 
 import requests
+
 
 oauth = OAuth()
 
@@ -242,13 +243,14 @@ def toggle(entry):
     entry.state = new_state
     entry.save()
     return new_state
+
 #two api functions: one for 
 def course_offering_api(request): 
     code = 'ENGL2170' #turn into searchable parameter later
     if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
     else:
-        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}") 
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
 
     if response.status_code == 200:
         data = response.json()
@@ -268,3 +270,43 @@ def waitlist_activity_api(request):
         return JsonResponse(data, safe=False)
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+    
+# daysConverter = {"M": "Monday", "T": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
+def courseFiller(request):
+    response = course_offering_api(request)
+    response2 = waitlist_activity_api(request)
+    for courseIndex in response:
+        number = courseIndex['courseOffering']['courseOfferingCode']
+        name = courseIndex['courseOffering']['name']
+        description = courseIndex['courseOffering']['descr']['formatted']
+        for sectionIndex in response2:
+            schedules = sectionIndex['scheduleNames'][0].split()
+            formatArray = sectionIndex['activityOffering']['formatOfferingName'].split()
+            course_type = formatArray[1]
+            section = sectionIndex['activityOffering']['activityCode']
+            instructor = sectionIndex['activityOffering']['instructors'][0]['personName']
+            days = schedules[len(schedules) - 2]
+            # need to split the start time from end time
+            time = schedules[len(schedules - 1)].split("-")
+            start_time = time[0]
+            end_time = time[1]
+            # need to figure out how to section off the location from everything else
+            locationPieces = schedules[0:len(schedules) - 2]
+            location = " ".join(locationPieces)
+            capacity = sectionIndex['activityOffering']['maximumEnrollment']
+            current_enrollment = sectionIndex['activitySeatCount']['available']
+
+        newCourse = Course(
+            number = number,
+            name = name,
+            course_type = course_type,
+            description = description,
+            section = section,
+            instructor = instructor,
+            days = days,
+            start_time = start_time,
+            end_time = end_time,
+            location = location,
+            capacity = capacity,
+            current_enrollment = current_enrollment
+        )
