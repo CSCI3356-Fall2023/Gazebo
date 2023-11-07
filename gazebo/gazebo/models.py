@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext as _
-from multiselectfield import MultiSelectField
 import gazebo.settings
 
 class Course(models.Model):
@@ -29,7 +28,7 @@ class Course(models.Model):
     section = models.CharField(max_length=10)
     instructor = models.CharField(max_length=255)
     # look into making days field a list
-    days = MultiSelectField(choices=DAYS_CHOICES, max_choices=3, max_length=3)
+    days = models.CharTield(max_length=255)
     start_time = models.TimeField()
     end_time = models.TimeField()
     location = models.CharField(max_length=255)
