@@ -114,6 +114,23 @@
                 height: auto;
                 margin-right: 8px;
             }
+            .alert {
+                padding: 15px;
+                margin-bottom: 20px;
+                border: 1px solid transparent;
+                border-radius: 4px;
+                }
+
+            .alert-danger {
+                color: #a94442;
+                background-color: #f2dede;
+                border-color: #ebccd1;
+            }
+
+            .alert p {
+                margin: 0;
+            }
+
             
                            
 
@@ -134,6 +151,13 @@
             <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest">
         </div>      
         <div class="white-section">
+            {% if messages %}
+            <div class="alert alert-danger" role="alert">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
             <h3>First time here? Register:</h3>
             <div class="button-container">
                 <div class="button-wrapper">
