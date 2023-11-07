@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
+import pandas as pd
 from gazebo.models import Course, SystemState
 from django.contrib.auth.forms import AuthenticationForm
 from gazebo.models import CustomUser
@@ -132,7 +133,7 @@ def list_courses(request):
         return render(request, 'courses/closed.html')
     else:
         courses = Course.objects.all()
-        # courseFiller(request)
+        courseFiller(request)
         return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
 
 def student_register(request):
@@ -276,8 +277,11 @@ def waitlist_activity_api(request):
 def courseFiller(request):
     response = course_offering_api(request)
     response2 = waitlist_activity_api(request)
+    dfResponse = pd.read_json(response.content)
+    dfResponse2 = pd.read_json(response2.content)
     for courseIndex in response.content:
         number = courseIndex['courseOffering']['courseOfferingCode']
+        print(number)
         name = courseIndex['courseOffering']['name']
         description = courseIndex['courseOffering']['descr']['formatted']
         for sectionIndex in response2.content:
