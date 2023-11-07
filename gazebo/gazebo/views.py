@@ -132,6 +132,7 @@ def list_courses(request):
         return render(request, 'courses/closed.html')
     else:
         courses = Course.objects.all()
+        # courseFiller(request)
         return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
 
 def student_register(request):
@@ -275,11 +276,11 @@ def waitlist_activity_api(request):
 def courseFiller(request):
     response = course_offering_api(request)
     response2 = waitlist_activity_api(request)
-    for courseIndex in response:
+    for courseIndex in response.content:
         number = courseIndex['courseOffering']['courseOfferingCode']
         name = courseIndex['courseOffering']['name']
         description = courseIndex['courseOffering']['descr']['formatted']
-        for sectionIndex in response2:
+        for sectionIndex in response2.content:
             schedules = sectionIndex['scheduleNames'][0].split()
             formatArray = sectionIndex['activityOffering']['formatOfferingName'].split()
             course_type = formatArray[1]
@@ -296,7 +297,7 @@ def courseFiller(request):
             capacity = sectionIndex['activityOffering']['maximumEnrollment']
             current_enrollment = sectionIndex['activitySeatCount']['used']
 
-        newCourse = Course(
+        newCourse = Course.objects.create(
             number = number,
             name = name,
             course_type = course_type,
@@ -310,3 +311,7 @@ def courseFiller(request):
             capacity = capacity,
             current_enrollment = current_enrollment
         )
+
+        newCourse.save()
+
+
