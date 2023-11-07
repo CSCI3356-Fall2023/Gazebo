@@ -294,7 +294,7 @@ def courseFiller(request):
             locationPieces = schedules[0:len(schedules) - 2]
             location = " ".join(locationPieces)
             capacity = sectionIndex['activityOffering']['maximumEnrollment']
-            current_enrollment = sectionIndex['activitySeatCount']['available']
+            current_enrollment = sectionIndex['activitySeatCount']['used']
 
         newCourse = Course(
             number = number,
