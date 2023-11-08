@@ -66,7 +66,10 @@ def callback(request):
         return redirect('additional_info')
 
     auth_login(request, user)
-    return redirect(reverse("list_courses"))
+    if request.user.is_superuser:
+        return redirect('status_change')
+    else: 
+        return redirect('list_courses')
 
 def is_valid_email(email):
     return email.endswith("@bc.edu")
@@ -94,7 +97,10 @@ def additional_info(request):
             user.minor = form.cleaned_data.get('minor')
             user.save() 
 
-            return redirect(reverse("list_courses"))
+            if user.is_superuser:
+                return redirect('status_change')
+            else: 
+                return redirect('list_courses')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -184,7 +190,7 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                if user.department:
+                if request.user.is_superuser:
                     return redirect('status_change')
                 else: 
                     return redirect('list_courses')
