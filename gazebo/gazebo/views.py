@@ -249,11 +249,12 @@ def toggle(entry):
 #two api functions: one for 
 def course_offering_api(request): 
     code = 'ENGL2170' #turn into searchable parameter later
-    if code is None:
+    """ if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
     else:
         response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
-
+ """
+    response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=*")
     if response.status_code == 200:
         data = response.json()
         return JsonResponse(data, safe=False)
@@ -298,6 +299,8 @@ def course_filler(request):
         location = " ".join(locationPieces)
         capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
         current_enrollment = dfResponse2[0]['activitySeatCount']['used']
+        if Course.objects.all().filter(number=number):
+            continue
         new_course = Course(
             number = number,
             name = name,
