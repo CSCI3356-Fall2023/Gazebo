@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.forms import JSONField
 from django.utils.translation import gettext as _
 import gazebo.settings
 
@@ -36,9 +35,13 @@ class Course(models.Model):
     capacity = models.IntegerField(default=0)
     current_enrollment = models.IntegerField(default=0)
     num_watches = models.IntegerField(default=0)
-    is_open = models.BooleanField(default=True)
-    if current_enrollment == capacity:
-        is_open = False
+
+    @property
+    def is_open(self):
+        return self.current_enrollment < self.capacity
+    # is_open = models.BooleanField(default=True)
+    # if current_enrollment == capacity:
+        # is_open = False
     
 class Watch(models.Model):
     student_id = models.CharField(max_length=10)

@@ -132,8 +132,8 @@ def list_courses(request):
     if state == "closed":
         return render(request, 'courses/closed.html')
     else:
+        course_filler(request)
         courses = Course.objects.all()
-        courseFiller(request)
         return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
 
 def student_register(request):
@@ -274,34 +274,31 @@ def waitlist_activity_api(request):
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
 # daysConverter = {"M": "Monday", "T": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
-def courseFiller(request):
+def course_filler(request):
     response = course_offering_api(request)
+    dfResponse = json.loads(response.content)
     response2 = waitlist_activity_api(request)
-    dfResponse = pd.read_json(response.content)
-    dfResponse2 = pd.read_json(response2.content)
-    for courseIndex in response.content:
+    dfResponse2 = json.loads(response2.content)
+    for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
         print(number)
         name = courseIndex['courseOffering']['name']
         description = courseIndex['courseOffering']['descr']['formatted']
-        for sectionIndex in response2.content:
-            schedules = sectionIndex['scheduleNames'][0].split()
-            formatArray = sectionIndex['activityOffering']['formatOfferingName'].split()
-            course_type = formatArray[1]
-            section = sectionIndex['activityOffering']['activityCode']
-            instructor = sectionIndex['activityOffering']['instructors'][0]['personName']
-            days = schedules[len(schedules) - 2]
-            # need to split the start time from end time
-            time = schedules[len(schedules - 1)].split("-")
-            start_time = time[0]
-            end_time = time[1]
-            # need to figure out how to section off the location from everything else
-            locationPieces = schedules[0:len(schedules) - 2]
-            location = " ".join(locationPieces)
-            capacity = sectionIndex['activityOffering']['maximumEnrollment']
-            current_enrollment = sectionIndex['activitySeatCount']['used']
-
-        newCourse = Course.objects.create(
+        schedules = dfResponse2[0]['scheduleNames'][0].split()
+        formatArray = dfResponse2[0]['activityOffering']['formatOfferingName'].split()
+        course_type = formatArray[1]
+        section = dfResponse2[0]['activityOffering']['activityCode']
+        instructor = dfResponse2[0]['activityOffering']['instructors'][0]['personName']
+        days = schedules[len(schedules) - 2]
+        time_range_str = schedules[len(schedules) - 1]  
+        time = time_range_str.split("-")
+        start_time = time[0][0:len(time[0]) - 2]  
+        end_time = time[1][0:len(time[1]) - 2]
+        locationPieces = schedules[0:len(schedules) - 2]
+        location = " ".join(locationPieces)
+        capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
+        current_enrollment = dfResponse2[0]['activitySeatCount']['used']
+        new_course = Course(
             number = number,
             name = name,
             course_type = course_type,
@@ -316,6 +313,6 @@ def courseFiller(request):
             current_enrollment = current_enrollment
         )
 
-        newCourse.save()
+        new_course.save()
 
 
