@@ -87,9 +87,10 @@
     <tbody>
     {% for course in courses %}
         <tr>
-            <td>{{ course.id }}</td>
+            <td>{{ course.number }}</td>
             <td>{{ course.name }}</td>
             <td>{{ course.instructor }}</td>
+            <td>{{ course.is_open }}</td>
         </tr>
     {% endfor %}
     </tbody>

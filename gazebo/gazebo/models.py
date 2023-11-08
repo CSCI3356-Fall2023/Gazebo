@@ -35,13 +35,9 @@ class Course(models.Model):
     capacity = models.IntegerField(default=0)
     current_enrollment = models.IntegerField(default=0)
     num_watches = models.IntegerField(default=0)
-
-    @property
-    def is_open(self):
-        return self.current_enrollment < self.capacity
-    # is_open = models.BooleanField(default=True)
-    # if current_enrollment == capacity:
-        # is_open = False
+    is_open = models.BooleanField(default=True)
+    if current_enrollment == capacity:
+        is_open = False
     
 class Watch(models.Model):
     student_id = models.CharField(max_length=10)
