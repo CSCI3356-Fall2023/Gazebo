@@ -52,6 +52,10 @@
     .closed {
         background-color: #FF5252;
     }
+    .logout {
+        color: #fff;
+        text-decoration: none;
+    }
 </style>
 
 <div class="header">
@@ -65,14 +69,15 @@
         </div>
     </div>
     <div class="search-bar">
-        <input type="search" placeholder="Search">
+        <a href="{% url 'logout' %}" class="logout">Logout</a>
+        <!-- <input type="search" placeholder="Search"> -->
     </div>
 </div>
 
 
 <h3>Courses for Fall 2023:</h3>
 
-<button>Filter</button>
+<button onclick="">Filter</button>
 <button>Sort</button>
 
 <table class="course-table">

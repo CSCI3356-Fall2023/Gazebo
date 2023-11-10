@@ -10,6 +10,7 @@ from django.http import JsonResponse
 import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 import re
 
 # OAuth2 Imports
@@ -115,7 +116,7 @@ def logout(request):
         f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
         + urlencode(
             {
-                "returnTo": request.build_absolute_uri(reverse("index")),
+                "returnTo": request.build_absolute_uri(reverse("landing")),
                 "client_id": settings.AUTH0_CLIENT_ID,
             },
             quote_via=quote_plus,
@@ -132,6 +133,7 @@ def index(request):
         },
     )
 
+@login_required
 def list_courses(request):
     email = request.user.email
     state = status_finder()
@@ -287,8 +289,8 @@ def course_filler(request):
     dfResponse = json.loads(response.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
-        if Course.objects.all().filter(number=number):
-            continue
+        # if Course.objects.all().filter(number=number):
+        #     continue
         response2 = waitlist_activity_api(request, courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
         if response2.status_code != 200 or dfResponse2 == []:
