@@ -29,8 +29,8 @@ class Course(models.Model):
     instructor = models.CharField(max_length=255)
     # look into making days field a list
     days = models.CharField(max_length=255)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(blank=True)
+    end_time = models.TimeField(blank=True)
     location = models.CharField(max_length=255)
     capacity = models.IntegerField(default=0)
     current_enrollment = models.IntegerField(default=0)

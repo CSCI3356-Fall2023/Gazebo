@@ -260,15 +260,16 @@ def course_offering_api(request):
     else:
         response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
  """
-    response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=*")
+    response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=#")
     if response.status_code == 200:
         data = response.json()
         return JsonResponse(data, safe=False)
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
-def waitlist_activity_api(request):
-    code = '952e91af-ffb8-471e-b135-04d6d0b02c62' #turn into searchable parameter later
+def waitlist_activity_api(request, id):
+    #code = '952e91af-ffb8-471e-b135-04d6d0b02c62' #turn into searchable parameter later
+    code = id
     if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
     else:
@@ -284,29 +285,34 @@ def waitlist_activity_api(request):
 def course_filler(request):
     response = course_offering_api(request)
     dfResponse = json.loads(response.content)
-    response2 = waitlist_activity_api(request)
-    dfResponse2 = json.loads(response2.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
-        print(number)
+        if Course.objects.all().filter(number=number):
+            continue
+        response2 = waitlist_activity_api(request, courseIndex['courseOffering']['id'])
+        dfResponse2 = json.loads(response2.content)
+        if response2.status_code != 200 or dfResponse2 == []:
+            continue
         name = courseIndex['courseOffering']['name']
         description = courseIndex['courseOffering']['descr']['formatted']
         schedules = dfResponse2[0]['scheduleNames'][0].split()
         formatArray = dfResponse2[0]['activityOffering']['formatOfferingName'].split()
         course_type = formatArray[1]
         section = dfResponse2[0]['activityOffering']['activityCode']
-        instructor = dfResponse2[0]['activityOffering']['instructors'][0]['personName']
+        instructor = ''
+        if dfResponse2[0]['activityOffering']['instructors'] == []:
+            instructor = "None"
+        else:
+            instructor = dfResponse2[0]['activityOffering']['instructors'][0]['personName']
         days = schedules[len(schedules) - 2]
         time_range_str = schedules[len(schedules) - 1]  
-        time = time_range_str.split("-")
-        start_time = time[0][0:len(time[0]) - 2]  
-        end_time = time[1][0:len(time[1]) - 2]
+        #time = time_range_str.split("-")
+        #start_time = time[0][0:len(time[0]) - 2]  
+        #end_time = time[1][0:len(time[1]) - 2]
         locationPieces = schedules[0:len(schedules) - 2]
         location = " ".join(locationPieces)
         capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
-        current_enrollment = dfResponse2[0]['activitySeatCount']['used']
-        if Course.objects.all().filter(number=number):
-            continue
+        #current_enrollment = dfResponse2[0]['activitySeatCount']['used']
         new_course = Course(
             number = number,
             name = name,
@@ -315,11 +321,14 @@ def course_filler(request):
             section = section,
             instructor = instructor,
             days = days,
-            start_time = start_time,
-            end_time = end_time,
+            #start_time = start_time,
+            start_time = '14:30:59',
+            end_time = '14:30:59',
+            #end_time = end_time,
             location = location,
             capacity = capacity,
-            current_enrollment = current_enrollment
+            #current_enrollment = current_enrollment
+            current_enrollment = 20
         )
 
         new_course.save()
