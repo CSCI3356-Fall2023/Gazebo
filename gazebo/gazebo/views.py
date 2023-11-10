@@ -11,7 +11,7 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-import re
+from django.db.models import Q
 
 # OAuth2 Imports
 import json
@@ -141,8 +141,24 @@ def list_courses(request):
         return render(request, 'courses/closed.html')
     else:
         course_filler(request)
-        courses = Course.objects.all()
-        return render(request, 'courses/list_courses.html', {'courses': courses, 'email': email})
+        course_code = request.GET.get('course_code')
+
+        # allowing for filtering by multiple different fields
+        query = Q()
+        if course_code:
+            query &= Q(number__icontains=course_code)
+        courses = Course.objects.filter(query)
+
+        sort_by = request.GET.get('sort_by')
+        if sort_by and sort_by in [field.name for field in Course._meta.get_fields()]:
+            courses = courses.order_by(sort_by)       
+
+        return render(request, 'courses/list_courses.html', {
+            'courses': courses, 
+            'email': email, 
+            'course_code': course_code, 
+            'sort_by': sort_by
+        })
 
 def student_register(request):
     return "foo"
@@ -289,13 +305,16 @@ def course_filler(request):
     dfResponse = json.loads(response.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
-        # if Course.objects.all().filter(number=number):
-        #     continue
+
+        # prevent dupicates 
+        if Course.objects.filter(number=number).exists():
+            continue 
+
         response2 = waitlist_activity_api(request, courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
         if response2.status_code != 200 or dfResponse2 == []:
             continue
-        name = courseIndex['courseOffering']['name']
+        name = courseIndex['courseOffering']['name'].split(' -- ')[-1]
         description = courseIndex['courseOffering']['descr']['formatted']
         schedules = dfResponse2[0]['scheduleNames'][0].split()
         formatArray = dfResponse2[0]['activityOffering']['formatOfferingName'].split()

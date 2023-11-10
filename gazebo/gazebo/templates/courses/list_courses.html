@@ -77,8 +77,31 @@
 
 <h3>Courses for Fall 2023:</h3>
 
-<button onclick="">Filter</button>
-<button>Sort</button>
+<!-- <form action="" method="get">
+    <input type="text" name="course_id" placeholder="Enter Course ID" value="{{ course_id }}">
+    <button type="submit">Filter</button>
+</form>
+<button>Sort</button> -->
+
+<form method="GET" id="filterForm">
+    <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <button type="submit">Filter</button>
+</form>
+
+<form method="GET" id="sortForm">
+    <label for="sort_by">Sort by:</label>
+    <select id="sort_by" name="sort_by">
+        <option value="name">Course Name</option>
+        <option value="number">Course Code</option>
+        <option value="instructor">Professor</option>
+        <option value="days">Days</option>
+    </select>
+    <input type="hidden" name="course_code" value="{{ course_code }}">
+    <button type="submit">Sort</button>
+</form>
+
+<a href="{% url 'list_courses' %}">Clear Filters/Sort</a>
 
 <table class="course-table">
     <thead>
