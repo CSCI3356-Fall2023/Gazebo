@@ -20,4 +20,5 @@ urlpatterns = [
     path('waitlist_activity_api/', views.waitlist_activity_api, name='waitlist_activity_api'),
     path('toggle_watchlist/<int:course_id>/', views.toggle_watchlist, name='toggle_watchlist'),
     path('watchlist/', views.watchlist_view, name='watchlist_view'),
+    path('error/', views.temp_view, name = 'temp_view')
 ]

@@ -8,15 +8,11 @@
         background-color: #f4f4f4;
         margin: 0;
         padding: 0;
-    }
-    .header {
-        background-color: #800000;
-        color: white;
-        padding: 10px;
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
         align-items: center;
-        width: 100%; 
+        justify-content: center;
+        height: 100vh;
     }
     .left-content {
         display: flex;
@@ -39,17 +35,22 @@
         width: 50px;
         height: 50px;
     }
+    .error-container {
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
     
 </style>
 {% endblock %}
 
 {% block content %}
 <body>
-    <div class="header">
-        <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest" class="center">
+    <div class="error-container">
+        <h1>Oops! You don't have access to this page.</h1>
     </div>
-    <h1>Oops! That wasn't the right email. Please try again with a BC email!
-    </h1>
 </body>
 
 {% endblock %}

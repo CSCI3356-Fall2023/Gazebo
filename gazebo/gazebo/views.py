@@ -378,4 +378,7 @@ def watchlist_view(request):
     courses = Course.objects.filter(watch__in=watches)
     return render(request, 'watchlist.html', {'courses': courses})
 
+def temp_view(request):
+    return render(request, 'error.html')
+
 
