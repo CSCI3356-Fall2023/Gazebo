@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
 import pandas as pd
 from gazebo.models import Course, SystemState
 from django.contrib.auth.forms import AuthenticationForm
-from gazebo.models import CustomUser
+from gazebo.models import CustomUser, Course, Watch
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -12,6 +12,7 @@ from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 
 # OAuth2 Imports
 import json
@@ -136,6 +137,9 @@ def index(request):
 @login_required
 def list_courses(request):
     email = request.user.email
+    user = request.user
+    courses = Course.objects.all()
+    watched_course_ids = Watch.objects.filter(student=user).values_list('course', flat=True)
     state = status_finder()
     if state == "closed":
         return render(request, 'courses/closed.html')
@@ -157,7 +161,8 @@ def list_courses(request):
             'courses': courses, 
             'email': email, 
             'course_code': course_code, 
-            'sort_by': sort_by
+            'sort_by': sort_by,
+            'watched_course_ids': watched_course_ids
         })
 
 def student_register(request):
@@ -353,5 +358,24 @@ def course_filler(request):
         )
 
         new_course.save()
+
+def toggle_watchlist(request, course_id):
+    if request.method == 'POST':
+        user = request.user
+        course = get_object_or_404(Course, id=course_id)
+        watch, created = Watch.objects.get_or_create(student=user, course=course)
+        if not created:
+            watch.delete()
+            added = False
+        else:
+            added = True
+        return JsonResponse({'added': added})
+    return JsonResponse({'status': 'error'}, status=400)
+
+def watchlist_view(request):
+    user = request.user
+    watches = Watch.objects.filter(student=user)
+    courses = Course.objects.filter(watch__in=watches)
+    return render(request, 'watchlist.html', {'courses': courses})
 
 

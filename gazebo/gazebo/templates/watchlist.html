@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0 20px;
+    }
+    .header {
+        background-color: #800000;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; 
+    }
+    .left-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .watchlist {
+        padding: 10px;
+        font-size: 16px;
+        display: flex;
+    }
+
+    .search-bar {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .course-table {
+        border-collapse: separate;
+        border-spacing: 0 10px; 
+        margin: 0 auto;
+        width: calc(100% - 40px);
+    }
+    .course-table thead th {
+        background-color: transparent; 
+        padding: 10px 10px;
+    }
+
+    .course-table tbody tr {
+        padding: 10px 10px;
+        background-color: #e6e6e6;
+        border-radius: 10px; 
+    }
+
+    .course-table th, .course-table td {
+        padding: 10px 20px;
+        background-color: #e6e6e6;
+    }
+    .course-table tbody tr td:nth-child(4) {
+        padding-right: 5px; /* Reduced right padding */
+    }
+    .course-table tbody tr td:nth-child(5) {
+        padding-left: 5px; /* Reduced left padding */
+    }
+
+    .course-table tbody tr td:first-child {
+        border-top-left-radius: 10px; 
+        border-bottom-left-radius: 10px; 
+    }
+
+    .course-table tbody tr td:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px; 
+    }
+    .status {
+        padding: 5px 15px;
+        border-radius: 5px;
+        color: #fff;
+        font-weight: bold;
+    }
+    .open {
+        background-color: #4CAF50;
+    }
+    .closed {
+        background-color: #FF5252;
+    }
+    .logout {
+        color: #fff;
+        text-decoration: none;
+    }
+</style>
+
+<div class="header">
+    {{ email }}
+    <div class="left-content">
+        <div class="course-list-link">
+            <a href="{% url 'list_courses' %}">Course List</a>
+        </div>
+        <div class="search-bar">
+                <a href="{% url 'logout' %}" class="logout">Logout</a>
+                <!-- <input type="search" placeholder="Search"> -->
+            </div>
+        </div>
+</div>
+
+
+<h3>My Watchlist</h3>
+
+<table class="course-table">
+    <thead>
+        <tr>
+            <th>Course ID</th>
+            <th>Course Name</th>
+            <th>Professor</th>
+            <th>Days</th>
+            <th>Open Seats</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for course in courses %}
+        <tr>
+            <td>{{ course.number }}</td>
+            <td>{{ course.name }}</td>
+            <td>{{ course.instructor }}</td>
+            <td>{{ course.days }}</td>
+            <td>{{ course.seats_available }}</td>
+            <td>
+                <button type="button" onclick="unwatchCourse({{ course.id }})">Unwatch</button>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5">You have no courses in your watchlist.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 'csrftoken='.length) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function unwatchCourse(courseId) {
+        const csrfToken = getCSRFToken();
+        fetch('/toggle_watchlist/' + courseId + '/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Request failed.');
+            return response.json();
+        })
+        .then(data => {
+            if (!data.added) {
+                // Remove the course row from the table or reload the page
+                location.reload(); // Simplest approach
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+
+{% endblock %}

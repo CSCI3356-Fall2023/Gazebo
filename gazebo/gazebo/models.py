@@ -45,11 +45,6 @@ class Course(models.Model):
         else:
             return self.capacity - self.current_enrollment
 
-class Watch(models.Model):
-    student_id = models.CharField(max_length=10)
-    course_id = models.CharField(max_length=10)
-    num_students = models.IntegerField(default=0)
-
 class Log(models.Model):
     student_id = models.CharField(max_length=10)
     timestamp = models.DateTimeField()
@@ -66,6 +61,13 @@ class CustomUser(AbstractUser):
     is_administrator = models.BooleanField(default=False)
     department = models.CharField(max_length=100, blank=True, null=True)
 
+class Watch(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    num_students = models.IntegerField(default=0)
+
+class Meta:
+    unique_together = ('student', 'course')
     
     
 

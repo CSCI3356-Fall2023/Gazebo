@@ -17,5 +17,7 @@ urlpatterns = [
     path('status/', views.status_change, name='status_change'),
     # path('login/', views.login_view, name='login')
     path('course_offering_api/', views.course_offering_api, name='course_offering_api'),
-    path('waitlist_activity_api/', views.waitlist_activity_api, name='waitlist_activity_api')
+    path('waitlist_activity_api/', views.waitlist_activity_api, name='waitlist_activity_api'),
+    path('toggle_watchlist/<int:course_id>/', views.toggle_watchlist, name='toggle_watchlist'),
+    path('watchlist/', views.watchlist_view, name='watchlist_view'),
 ]

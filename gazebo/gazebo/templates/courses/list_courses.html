@@ -52,25 +52,23 @@
 
     .course-table th, .course-table td {
         padding: 10px 20px;
-        background-color: #e6e6e6; /* Ensures the background color fills the cell */
+        background-color: #e6e6e6;
     }
     .course-table tbody tr td:nth-child(4) {
         padding-right: 5px; /* Reduced right padding */
     }
-
-    /* Target the "Open Seats" column td elements, assuming it's the fifth child */
     .course-table tbody tr td:nth-child(5) {
         padding-left: 5px; /* Reduced left padding */
     }
 
     .course-table tbody tr td:first-child {
-        border-top-left-radius: 10px; /* Rounds the top left corner */
-        border-bottom-left-radius: 10px; /* Rounds the bottom left corner */
+        border-top-left-radius: 10px; 
+        border-bottom-left-radius: 10px; 
     }
 
     .course-table tbody tr td:last-child {
-        border-top-right-radius: 10px; /* Rounds the top right corner */
-        border-bottom-right-radius: 10px; /* Rounds the bottom right corner */
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px; 
     }
     .status {
         padding: 5px 15px;
@@ -88,23 +86,40 @@
         color: #fff;
         text-decoration: none;
     }
+    .toast-container {
+        display: none;
+        position: fixed;
+        bottom: 20px; 
+        right: 20px; 
+        z-index: 1000; 
+    }
+    
+    .watchlist-toast {
+        background-color: #800000; 
+        color: white; 
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); 
+    }
+    
 </style>
 
 <div class="header">
     {{ email }}
     <div class="left-content">
-        <div class="watchlist">
-            My Watchlist
-        </div>
-        <div class="watchlist">
-            Course List
-        </div>
+        <a href="{% url 'watchlist_view' %}">My Watchlist</a>
     </div>
     <div class="search-bar">
         <a href="{% url 'logout' %}" class="logout">Logout</a>
         <!-- <input type="search" placeholder="Search"> -->
     </div>
 </div>
+
+<div id="toast-container" class="toast-container">
+    <div id="watchlist-toast" class="watchlist-toast"></div>
+</div>
+
+
 
 
 <h3>Courses for Fall 2023:</h3>
@@ -155,8 +170,12 @@
             <td>{{ course.days }}</td>
             <td>{{ course.seats_available }}</td>
             <td>
-                <button class="watchlist-btn" onclick="toggleWatchlist(this)">
-                    <i class="fa solid fa-eye-slash"></i> 
+                <button class="watchlist-btn" onclick="toggleWatchlist(this, {{ course.id }}, '{{ course.name|escapejs }}')">
+                    {% if course.id in watched_course_ids %}
+                        <i class="fa fa-eye" aria-hidden="true"></i> 
+                    {% else %}
+                        <i class="fa fa-eye-slash" aria-hidden="true"></i> 
+                    {% endif %}
                 </button>
             </td>
         </tr>
@@ -165,16 +184,54 @@
 </table>
 
 <script>
-    function toggleWatchlist(button) {
-        var icon = button.querySelector('i');
-        if (icon.classList.contains('fa-eye-slash')) {
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye'); // Open eye icon
-        } else {
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash'); // Closed eye icon
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 'csrftoken='.length) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
+                    break;
+                }
+            }
         }
+        return cookieValue;
     }
-</script>
+        function toggleWatchlist(button, courseId, courseName) {
+            const csrfToken = getCSRFToken();
+            fetch('/toggle_watchlist/' + courseId + '/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Request failed.');
+                return response.json();
+            })
+            .then(data => {
+                var icon = button.querySelector('i');
+                var toastContainer = document.getElementById('toast-container');
+                var watchlistToast = document.getElementById('watchlist-toast');
+                if (data.added) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    watchlistToast.innerHTML = `You are now watching ${courseName}. See all watched courses in <a href="{% url 'watchlist_view' %}" style="color: yellow;">My Watchlist</a>.`;
+                    toastContainer.style.display = 'block';
+                    setTimeout(function() { toastContainer.style.display = 'none'; }, 3000); 
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+    
+
 
 {% endblock %}
