@@ -38,7 +38,13 @@ class Course(models.Model):
     is_open = models.BooleanField(default=True)
     if current_enrollment == capacity:
         is_open = False
-    
+    @property
+    def seats_available(self):
+        if self.capacity - self.current_enrollment < 0:
+            return 0
+        else:
+            return self.capacity - self.current_enrollment
+
 class Watch(models.Model):
     student_id = models.CharField(max_length=10)
     course_id = models.CharField(max_length=10)
