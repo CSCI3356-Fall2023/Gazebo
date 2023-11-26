@@ -341,7 +341,11 @@ def course_filler(request):
         locationPieces = schedules[0:len(schedules) - 2]
         location = " ".join(locationPieces)
         capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
-        #current_enrollment = dfResponse2[0]['activitySeatCount']['used']
+        current_enrollment = ''
+        if dfResponse2[0]['activitySeatCount'] == []:
+            current_enrollment = 20
+        else:
+            current_enrollment = dfResponse2[0]['activitySeatCount']['used']
         new_course = Course(
             number = number,
             name = name,
@@ -356,8 +360,7 @@ def course_filler(request):
             #end_time = end_time,
             location = location,
             capacity = capacity,
-            #current_enrollment = current_enrollment
-            current_enrollment = 20
+            current_enrollment = current_enrollment
         )
 
         new_course.save()
