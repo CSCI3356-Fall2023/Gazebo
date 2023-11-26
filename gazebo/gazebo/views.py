@@ -227,6 +227,9 @@ def landing(request):
     return render(request, 'registration/login_and_register.html')
 
 def status_change(request):
+    if(not request.user.is_superuser):
+        return redirect('temp_view')
+    
     email = request.user.email
     semester = sem()
     state = status_finder()
