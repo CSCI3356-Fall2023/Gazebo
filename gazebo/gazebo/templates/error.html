@@ -20,8 +20,8 @@
     }
 
     .gray-bar {
-        background-color: gray;   /* Gray background */
-        border-radius: 12px;      /* Rounded corners */
+        background-color: gray;  
+        border-radius: 12px;     
         padding: 10px;
         display: flex;
         justify-content: space-between;
@@ -35,22 +35,82 @@
         width: 50px;
         height: 50px;
     }
-    .error-container {
+    .oops {
         text-align: center;
         padding: 20px;
         border-radius: 8px;
-        background-color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        margin-bottom: 0px;
     }
+    
+    .oops i {
+        font-size: 2em; 
+        margin-bottom: 0px;
+    }
+    .oops h1 {
+        padding: 0;
+        margin: 0;
+    }
+
+    .error-container {
+        text-align: center;
+        padding: 20px;
+        padding-top: 0;
+        font-size: smaller;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column; 
+        align-items: center;
+        justify-content: center; 
+        margin-top: 0px;
+    }
+    
+    .error-container h1 {
+        font-size: 25px;
+    }
+    .back-button {
+        padding: 10px 20px;
+        background-color: #007bff; 
+        color: white; 
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        cursor: pointer; 
+        transition: background-color 0.3s ease; 
+    }
+    
+    .back-button:hover {
+        background-color: #0056b3;
+    }
+
+    .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    
     
 </style>
 {% endblock %}
 
 {% block content %}
 <body>
-    <div class="error-container">
-        <h1>Oops! You don't have access to this page.</h1>
+    <div class="content-wrapper">
+        <div class="oops">
+            <i class="fa-solid fa-lock"></i>
+            <h1>Oops!</h1>
+        </div>
+        <div class="error-container">
+            <h1>You don't have access to this page.</h1>
+            <a href="{% url 'list_courses' %}" class="back-button">Back to List Courses</a>
+        </div>
     </div>
 </body>
+
 
 {% endblock %}
