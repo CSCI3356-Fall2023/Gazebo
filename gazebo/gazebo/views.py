@@ -13,6 +13,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
+from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
 
 # OAuth2 Imports
 import json
@@ -138,57 +141,54 @@ def index(request):
 def list_courses(request):
     email = request.user.email
     user = request.user
-    courses = Course.objects.all()
-    watched_course_ids = Watch.objects.filter(student=user).values_list('course', flat=True)
-    state = status_finder()
-    if state == "closed":
-        return render(request, 'courses/closed.html')
+    
+    course_code = request.GET.get('course_code', '')
+    sort_by = request.GET.get('sort_by', 'number') 
+
+    query = Q()
+    if course_code:
+        query &= Q(number__icontains=course_code)
+
+    courses = Course.objects.filter(query).order_by(sort_by)
+
+    paginator = Paginator(courses, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    watched_course_ids = list(Watch.objects.filter(student=user).values_list('course', flat=True))
+    watched_course_ids = [int(id) for id in watched_course_ids] 
+
+    return render(request, 'courses/list_courses.html', {
+        'page_obj': page_obj,
+        'email': email,
+        'course_code': course_code,
+        'sort_by': sort_by,
+        'watched_course_ids': watched_course_ids
+    })
+
+@login_required
+@require_POST
+def toggle_watchlist(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    user = request.user
+
+    watch_entry, created = Watch.objects.get_or_create(student=user, course=course)
+
+    # if we create a watch entry before, toggle it by removing from Watch table
+    if not created:
+        watch_entry.delete()
+    # if not, entry was created and added to watch list so do nothing
     else:
-        course_filler(request)
-        course_code = request.GET.get('course_code')
+        pass
 
-        # allowing for filtering by multiple different fields
-        query = Q()
-        if course_code:
-            query &= Q(number__icontains=course_code)
-        courses = Course.objects.filter(query)
-
-        sort_by = request.GET.get('sort_by')
-        if sort_by and sort_by in [field.name for field in Course._meta.get_fields()]:
-            courses = courses.order_by(sort_by)       
-
-        return render(request, 'courses/list_courses.html', {
-            'courses': courses, 
-            'email': email, 
-            'course_code': course_code, 
-            'sort_by': sort_by,
-            'watched_course_ids': watched_course_ids
-        })
-
-def student_register(request):
-    return "foo"
-    # form = StudentSignUpForm(request.POST)
-    # if form.is_valid():
-    #     email = form.cleaned_data.get('email')
-    #     is_valid_bc_user = validate_bc_user(email)
-    #     if not is_valid_bc_user:
-
-    # else:
-    #     print(form.errors)
-    #     # validate BC email
-
-    #     # check to see if already in database (don't want duplicates)
-
-    #     # if not, that means first time user --> prompt Google login
-
-    #     # redirect to get additional info (major, minor, etc)
-    #     form = StudentSignUpForm(request.POST)
-    #     if form.is_valid():
-    #         user = form.save()
-    #         login(request, user)
-    #         return redirect('list_courses')
-    #     form = StudentSignUpForm(initial={'school':'CSOM'})
-    # return render(request, 'registration/registration.html', {'form': form})
+    # handles redirect to the correct page (courselist or watchlist)
+    origin = request.POST.get('origin')
+    if origin == 'watchlist':
+        return redirect('watchlist_view')
+    else:
+        course_code = request.POST.get('course_code', '')
+        sort_by = request.POST.get('sort_by', '')
+        return redirect(f'/courses/?course_code={course_code}&sort_by={sort_by}')
 
 # admin register is now going to be only done through superuser
 def admin_register(request):
@@ -359,18 +359,18 @@ def course_filler(request):
 
         new_course.save()
 
-def toggle_watchlist(request, course_id):
-    if request.method == 'POST':
-        user = request.user
-        course = get_object_or_404(Course, id=course_id)
-        watch, created = Watch.objects.get_or_create(student=user, course=course)
-        if not created:
-            watch.delete()
-            added = False
-        else:
-            added = True
-        return JsonResponse({'added': added})
-    return JsonResponse({'status': 'error'}, status=400)
+# def toggle_watchlist(request, course_id):
+#     if request.method == 'POST':
+#         user = request.user
+#         course = get_object_or_404(Course, id=course_id)
+#         watch, created = Watch.objects.get_or_create(student=user, course=course)
+#         if not created:
+#             watch.delete()
+#             added = False
+#         else:
+#             added = True
+#         return JsonResponse({'added': added})
+#     return JsonResponse({'status': 'error'}, status=400)
 
 def watchlist_view(request):
     user = request.user

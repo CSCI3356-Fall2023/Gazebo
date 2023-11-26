@@ -123,7 +123,11 @@
             <td>{{ course.days }}</td>
             <td>{{ course.seats_available }}</td>
             <td>
-                <button type="button" onclick="unwatchCourse({{ course.id }})">Unwatch</button>
+                <form action="{% url 'toggle_watchlist' course.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="origin" value="watchlist">
+                    <button type="submit" class="unwatch-btn">Unwatch</button>
+                </form>
             </td>
         </tr>
     {% empty %}
@@ -133,47 +137,6 @@
     {% endfor %}
     </tbody>
 </table>
-
-<script>
-    function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 'csrftoken='.length) === 'csrftoken=') {
-                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    function unwatchCourse(courseId) {
-        const csrfToken = getCSRFToken();
-        fetch('/toggle_watchlist/' + courseId + '/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Request failed.');
-            return response.json();
-        })
-        .then(data => {
-            if (!data.added) {
-                // Remove the course row from the table or reload the page
-                location.reload(); // Simplest approach
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-</script>
 
 
 {% endblock %}

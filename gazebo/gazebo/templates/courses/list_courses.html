@@ -162,7 +162,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for course in courses %}
+    {% for course in page_obj %}
         <tr>
             <td>{{ course.number }}</td>
             <td>{{ course.name }}</td>
@@ -170,67 +170,39 @@
             <td>{{ course.days }}</td>
             <td>{{ course.seats_available }}</td>
             <td>
-                <button class="watchlist-btn" onclick="toggleWatchlist(this, {{ course.id }}, '{{ course.name|escapejs }}')">
-                    {% if course.id in watched_course_ids %}
-                        <i class="fa fa-eye" aria-hidden="true"></i> 
-                    {% else %}
-                        <i class="fa fa-eye-slash" aria-hidden="true"></i> 
-                    {% endif %}
-                </button>
+                <form action="{% url 'toggle_watchlist' course.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="course_code" value="{{ course_code }}">
+                    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                    <input type="hidden" name="origin" value="course_list">
+                    <button type="submit" class="watchlist-btn">
+                        {% if course.id in watched_course_ids %}
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="fa fa-eye-slash" aria-hidden="true"></i>
+                        {% endif %}
+                    </button>
+                </form>
             </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&course_code={{ course_code }}&sort_by={{ sort_by }}">Previous</a>
+        {% endif %}
 
-<script>
-    function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 'csrftoken='.length) === 'csrftoken=') {
-                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-        function toggleWatchlist(button, courseId, courseName) {
-            const csrfToken = getCSRFToken();
-            fetch('/toggle_watchlist/' + courseId + '/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Request failed.');
-                return response.json();
-            })
-            .then(data => {
-                var icon = button.querySelector('i');
-                var toastContainer = document.getElementById('toast-container');
-                var watchlistToast = document.getElementById('watchlist-toast');
-                if (data.added) {
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                    watchlistToast.innerHTML = `You are now watching ${courseName}. See all watched courses in <a href="{% url 'watchlist_view' %}" style="color: yellow;">My Watchlist</a>.`;
-                    toastContainer.style.display = 'block';
-                    setTimeout(function() { toastContainer.style.display = 'none'; }, 3000); 
-                } else {
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    </script>
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&course_code={{ course_code }}&sort_by={{ sort_by }}">Next</a>
+        {% endif %}
+    </span>
+</div>
     
 
 
