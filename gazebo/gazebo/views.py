@@ -278,8 +278,19 @@ def toggle(entry):
     entry.save()
     return new_state
 
+def course_by_code(code):
+    if code is None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
+    else:
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
+    if response.status_code == 200:
+        data = response.json()
+        return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+    
 #two api functions: one for 
-def course_offering_api(request): 
+def course_offering_api(): 
     code = 'ENGL2170' #turn into searchable parameter later
     """ if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
@@ -293,7 +304,7 @@ def course_offering_api(request):
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
-def waitlist_activity_api(request, id):
+def waitlist_activity_api(id):
     #code = '952e91af-ffb8-471e-b135-04d6d0b02c62' #turn into searchable parameter later
     code = id
     if code is None:
@@ -308,8 +319,8 @@ def waitlist_activity_api(request, id):
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
 # daysConverter = {"M": "Monday", "T": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
-def course_filler(request):
-    response = course_offering_api(request)
+def course_filler():
+    response = course_offering_api()
     dfResponse = json.loads(response.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
@@ -318,7 +329,7 @@ def course_filler(request):
         if Course.objects.filter(number=number).exists():
             continue 
 
-        response2 = waitlist_activity_api(request, courseIndex['courseOffering']['id'])
+        response2 = waitlist_activity_api(courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
         if response2.status_code != 200 or dfResponse2 == []:
             continue
