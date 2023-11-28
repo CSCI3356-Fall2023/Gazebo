@@ -23,6 +23,7 @@ class Course(models.Model):
     
     number = models.CharField(max_length=10)
     name = models.CharField(max_length=255)
+    # course_level = models.CharField(max_length=10)
     course_type = models.CharField(max_length=10, choices=COURSE_TYPES)
     description = models.TextField()
     section = models.CharField(max_length=10)

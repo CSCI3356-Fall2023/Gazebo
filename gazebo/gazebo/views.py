@@ -289,9 +289,8 @@ def course_by_code(code):
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
-#two api functions: one for 
+#two api functions: one for calling course list, one for calling section list
 def course_offering_api(): 
-    code = 'ENGL2170' #turn into searchable parameter later
     """ if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
     else:
@@ -305,7 +304,6 @@ def course_offering_api():
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
 def waitlist_activity_api(id):
-    #code = '952e91af-ffb8-471e-b135-04d6d0b02c62' #turn into searchable parameter later
     code = id
     if code is None:
         response = requests.get("http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
@@ -318,7 +316,7 @@ def waitlist_activity_api(id):
     else:
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
-# daysConverter = {"M": "Monday", "T": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
+# daysConverter = {"M": "Monday", "Tu": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
 def course_filler():
     response = course_offering_api()
     dfResponse = json.loads(response.content)
@@ -334,6 +332,7 @@ def course_filler():
         if response2.status_code != 200 or dfResponse2 == []:
             continue
         name = courseIndex['courseOffering']['name'].split(' -- ')[-1]
+        course_level = name[4] + "000"
         description = courseIndex['courseOffering']['descr']['formatted']
         schedules = dfResponse2[0]['scheduleNames'][0].split()
         formatArray = dfResponse2[0]['activityOffering']['typeKey'].split(".")
@@ -360,6 +359,7 @@ def course_filler():
         new_course = Course(
             number = number,
             name = name,
+            # course_level = course_level,
             course_type = course_type,
             description = description,
             section = section,
