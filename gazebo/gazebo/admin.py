@@ -7,10 +7,10 @@ class CourseAdmin(admin.ModelAdmin):
                     'current_enrollment', 'capacity', 
                     'description', 'section', 'days', 
                     'start_time', 'end_time', 'location',
-                    'num_watches', 'is_open']
+                    'num_watches', 'is_open', 'course_type']
     search_fields = ['name', 'instructor', 'number', 
                      'is_open', 'days', 'start_time', 
-                     'end_time', 'num_watches', 'location']
+                     'end_time', 'num_watches', 'location', 'course_type']
 
 
 # Need configuration for other models
