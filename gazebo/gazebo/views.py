@@ -336,8 +336,8 @@ def course_filler():
         name = courseIndex['courseOffering']['name'].split(' -- ')[-1]
         description = courseIndex['courseOffering']['descr']['formatted']
         schedules = dfResponse2[0]['scheduleNames'][0].split()
-        formatArray = dfResponse2[0]['activityOffering']['formatOfferingName'].split()
-        course_type = formatArray[1]
+        formatArray = dfResponse2[0]['activityOffering']['typeKey'].split(".")
+        course_type = formatArray[len(formatArray) - 1]
         section = dfResponse2[0]['activityOffering']['activityCode']
         instructor = ''
         if dfResponse2[0]['activityOffering']['instructors'] == []:
