@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
 <style>
     body {
@@ -17,6 +17,10 @@
         align-items: center;
         width: 100%; 
     }
+    .header-logo {
+        width: 50px;
+        height: auto;
+    }
     .left-content {
         display: flex;
         align-items: center;
@@ -28,7 +32,7 @@
         display: flex;
     }
 
-    .search-bar {
+    .right-content {
         padding: 10px;
         display: flex;
         align-items: center;
@@ -101,25 +105,86 @@
         border-radius: 5px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); 
     }
+    .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        padding: 12px 16px;
+        z-index: 1;
+      }
+      
+      .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+        .dropdown-content a:hover {background-color: #f1f1f1;}
+    
+        .dropdown:hover .dropdown-content {display: block;}
+    
+        .dropbtn {
+            background-color: transparent;
+            color: white;
+            padding: 16px;
+            font-size: 16px;
+            border: none;
+        cursor: pointer;
+    }
+    .tab-link {
+        padding: 10px;
+        text-decoration: none;
+        color: black;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    .tab-link:hover {
+        background-color: #f0f0f0;
+    }
+    .tab-link.active {
+       
+        color: blue;
+    }
+    .forms-container {
+        display: flex;
+        justify-content: flex-end; 
+        gap: 10px; 
+    }
+    .second-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; 
+    }
     
 </style>
 
 <div class="header">
-    {{ email }}
     <div class="left-content">
-        <a href="{% url 'watchlist_view' %}">My Watchlist</a>
+        <img src="{% static 'bc_crest 1.png' %}" alt="BC Crest" class="header-logo">
+        <h1> GAZEBO </h1>
     </div>
-    <div class="search-bar">
-        <a href="{% url 'logout' %}" class="logout">Logout</a>
+    <div class="right-content">
+        <div class="dropdown">
+            <button class="dropbtn">{{email}} &#9662; </button>
+            <div class="dropdown-content">
+                <a href="{% url 'logout' %}" class="logout">Logout</a>
         <!-- <input type="search" placeholder="Search"> -->
+            </div>
+        </div>
     </div>
 </div>
 
 <div id="toast-container" class="toast-container">
     <div id="watchlist-toast" class="watchlist-toast"></div>
 </div>
-
-
 
 
 <h3>Courses for Fall 2023:</h3>
@@ -130,25 +195,36 @@
 </form>
 <button>Sort</button> -->
 
-<form method="GET" id="filterForm">
-    <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
-    <input type="hidden" name="sort_by" value="{{ sort_by }}">
-    <button type="submit">Filter</button>
-</form>
+<div class="second-header">
 
-<form method="GET" id="sortForm">
-    <label for="sort_by">Sort by:</label>
-    <select id="sort_by" name="sort_by">
-        <option value="name">Course Name</option>
-        <option value="number">Course Code</option>
-        <option value="instructor">Professor</option>
-        <option value="days">Days</option>
-    </select>
-    <input type="hidden" name="course_code" value="{{ course_code }}">
-    <button type="submit">Sort</button>
-</form>
+    <div class="tabs">
+        <a href="{% url 'list_courses' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Courses</a>
+        <a href="{% url 'watchlist_view' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">My Watchlist</a>
+    </div>
 
-<a href="{% url 'list_courses' %}">Clear Filters/Sort</a>
+
+    <div class="forms-container">
+        <form method="GET" id="filterForm">
+            <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
+            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+            <button type="submit">Filter</button>
+            </form>
+
+        <form method="GET" id="sortForm">
+            <label for="sort_by">Sort by:</label>
+            <select id="sort_by" name="sort_by">
+                <option value="name">Course Name</option>
+                <option value="number">Course Code</option>
+                <option value="instructor">Professor</option>
+                <option value="days">Days</option>
+            </select>
+            <input type="hidden" name="course_code" value="{{ course_code }}">
+            <button type="submit">Sort</button>
+        </form>
+
+        <a href="{% url 'list_courses' %}">Clear Filters/Sort</a>
+    </div>
+</div>
 
 <table class="course-table">
     <thead>
