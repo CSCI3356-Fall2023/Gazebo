@@ -17,6 +17,10 @@
         align-items: center;
         width: 100%; 
     }
+    .header h1 {
+        margin-left: 10px; 
+        font-size: 36px; 
+    }
     .header-logo {
         width: 50px;
         height: auto;
@@ -203,6 +207,72 @@
         padding: 5px 0;
         border-bottom: 1px solid #ccc;
     }
+    .watch-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .watch-dropbtn {
+        background-color: white;
+        color: black;
+        padding: 6px 10px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+        border: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px; /* Adjusts space between eye icon, text, and caret */
+    }
+    
+    .watch-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        border-radius: 5px;
+    }
+    
+    .watch-dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+    }
+    
+    .watch-dropdown:hover .watch-dropdown-content {
+        display: block;
+    }
+    
+    .watch-dropdown:hover .watch-dropbtn {
+        background-color: #f1f1f1;
+    }
+    .watch-dropdown-content button.dropdown-option {
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        color: #333;
+    }
+    
+    .watch-dropdown-content button.dropdown-option:hover {
+        background-color: #f2f2f2; 
+    }
+    
+    .fa-check {
+        color: black; 
+        margin-right: 5px;
+    }
+    
+    
     
     
 </style>
@@ -281,7 +351,7 @@
                     <span>Location</span>
                     <span>Professor</span>
                     <span>Open Seats</span>
-                    <span>Watch</span>
+                   <!-- <span>Watch</span> -->
                 </div>
                 <div class="course-section">
                     <span>{{ course.course_type }}</span>
@@ -295,13 +365,30 @@
                             <input type="hidden" name="course_code" value="{{ course_code }}">
                             <input type="hidden" name="sort_by" value="{{ sort_by }}">
                             <input type="hidden" name="origin" value="course_list">
-                            <button type="submit" class="watchlist-btn">
-                                {% if course.id in watched_course_ids %}
-                                    <i class="fa fa-eye" aria-hidden="true"></i>
-                                {% else %}
-                                    <i class="fa fa-eye-slash" aria-hidden="true"></i>
-                                {% endif %}
-                            </button>
+
+    
+                            <div class="watch-dropdown">
+                                <button type="button" class="watch-dropbtn">
+                                    <i class="fa fa-eye" aria-hidden="true"></i> Watch
+                                    <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                </button>
+                                <div class="watch-dropdown-content">
+                                    <button type="submit" name="action" value="notify_1" class="dropdown-option">
+                                        {% if course.id in watched_course_ids %}
+                                            <i class="fa fa-check" aria-hidden="true"></i>
+                                        {% endif %}
+                                        Notify me when 1 seat opens up
+                                    </button>
+                                    <button type="submit" name="action" value="notify_3" class="dropdown-option">
+                                        {% if course.id in watched_course_ids %}
+                                            <i class="fa fa-check" aria-hidden="true"></i>
+                                        {% endif %}
+                                        Notify me when 3 seats open up
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            
                         </form>
                     </span>
                 </div>
@@ -309,6 +396,7 @@
         </details>
     {% endfor %}
 </div>
+
 
 
 
