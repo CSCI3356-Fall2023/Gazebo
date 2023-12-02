@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gazebo',
-    'django_bootstrap5'
+    'django_bootstrap5',
+    'django_apscheduler'
 ]
 
 MIDDLEWARE = [

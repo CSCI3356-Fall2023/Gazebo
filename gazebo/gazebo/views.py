@@ -278,16 +278,6 @@ def toggle(entry):
     entry.save()
     return new_state
 
-def course_by_code(code):
-    if code is None:
-        response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
-    else:
-        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
-    if response.status_code == 200:
-        data = response.json()
-        return JsonResponse(data, safe=False)
-    else:
-        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
 #two api functions: one for calling course list, one for calling section list
 def course_offering_api(): 

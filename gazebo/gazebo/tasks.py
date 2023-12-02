@@ -1,7 +1,41 @@
-from .models import Watch
-from .views import *
+import json
+import requests
+from django.http import JsonResponse
 
+from django.core.mail import send_mail
+from apscheduler.schedulers.background import BackgroundScheduler
+from django.apps import apps
+
+scheduler = BackgroundScheduler()
+
+def course_by_code(code):
+    if code is None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
+    else:
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
+    if response.status_code == 200:
+        data = response.json()
+        return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+
+def waitlist_activity_api(id):
+    code = id
+    if code is None:
+        response = requests.get("http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
+    else:
+        response = requests.get(f"http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId={code}") 
+
+    if response.status_code == 200:
+        data = response.json()
+        return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+    
 def check_course_availability():
+
+    Watch = apps.get_model("gazebo", "Watch")
+    DjangoJobStore = apps.get_model("django_apscheduler", "DjangoJobStore")
 
     watches = Watch.objects.all()
 
@@ -24,3 +58,9 @@ def check_course_availability():
                 print(f'{number} is open!')
 
         
+def start_scheduler():
+    if not scheduler.running:
+        scheduler.add_job(check_course_availability, "interval", hours=6)
+        scheduler.start()
+
+start_scheduler()
