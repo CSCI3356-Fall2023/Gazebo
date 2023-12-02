@@ -1,9 +1,6 @@
-# your_app/tasks.py
-from celery import shared_task
 from .models import Watch
 from .views import *
 
-@shared_task
 def check_course_availability():
 
     watches = Watch.objects.all()
