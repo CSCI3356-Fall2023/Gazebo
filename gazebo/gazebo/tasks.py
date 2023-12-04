@@ -3,6 +3,7 @@ import requests
 from django.http import JsonResponse
 
 from django.core.mail import send_mail
+from django.conf import settings
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.apps import apps
 
@@ -52,11 +53,13 @@ def check_course_availability():
                 continue
             else:
                 current_enrollment = dfResponse2[0]['activitySeatCount']['used']
-            # Add email capabilities here
+            # Email capabilities
+            student_email = watch.student.email            
             if current_enrollment < watch.course.capacity:
+                send_mail(f'{number} is open!',  f'{number} is open!', settings.EMAIL_HOST_USER, [student_email], fail_silently=True)
                 print(f'{number} is open!')
 
-        
+
 def start_scheduler():
     if not scheduler.running:
         scheduler.add_job(check_course_availability, "interval", hours=1/60)
