@@ -35,7 +35,6 @@ def waitlist_activity_api(id):
 def check_course_availability():
 
     Watch = apps.get_model("gazebo", "Watch")
-    DjangoJobStore = apps.get_model("django_apscheduler", "DjangoJobStore")
 
     watches = Watch.objects.all()
 
@@ -43,7 +42,7 @@ def check_course_availability():
         number = watch.course.number
         response1 = course_by_code(number)
         dfResponse1 = json.loads(response1.content)
-        if response1 != []:
+        if response1 != [] and dfResponse1[0]:
             response2 = waitlist_activity_api(dfResponse1[0]['courseOffering']['id'])
             dfResponse2 = json.loads(response2.content)
             if response2.status_code != 200 or dfResponse2 == []:
@@ -60,7 +59,7 @@ def check_course_availability():
         
 def start_scheduler():
     if not scheduler.running:
-        scheduler.add_job(check_course_availability, "interval", hours=6)
+        scheduler.add_job(check_course_availability, "interval", hours=1/60)
         scheduler.start()
 
 start_scheduler()
