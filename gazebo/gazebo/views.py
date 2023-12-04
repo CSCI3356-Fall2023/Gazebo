@@ -11,11 +11,12 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Prefetch, Count
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import user_passes_test
 
 # OAuth2 Imports
 import json
@@ -149,21 +150,38 @@ def list_courses(request):
     if course_code:
         query &= Q(number__icontains=course_code)
 
-    courses = Course.objects.filter(query).order_by(sort_by)
+    courses = Course.objects.filter(query).annotate(number_of_watches=Count('watch'))
+
+    if sort_by == 'number_of_watches':
+        courses = courses.order_by('-number_of_watches')
+    else:
+        courses = courses.order_by(sort_by)
+
+    # if sort_by == 'number_of_watches':
+    #     courses = courses.annotate(number_of_watches=Count('watch'))
+
+    # courses = courses.order_by(sort_by)
+
+    # watch_prefetch = Prefetch('watch_set', queryset=Watch.objects.select_related('student'))
+    # courses = Course.objects.filter(query).prefetch_related(watch_prefetch).order_by(sort_by)
 
     paginator = Paginator(courses, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    
     watched_course_ids = list(Watch.objects.filter(student=user).values_list('course', flat=True))
     watched_course_ids = [int(id) for id in watched_course_ids] 
+
+    is_admin = request.user.is_superuser
 
     return render(request, 'courses/list_courses.html', {
         'page_obj': page_obj,
         'email': email,
         'course_code': course_code,
         'sort_by': sort_by,
-        'watched_course_ids': watched_course_ids
+        'watched_course_ids': watched_course_ids,
+        'is_admin': is_admin,
     })
 
 @login_required
@@ -218,10 +236,31 @@ def login_view(request):
                 else: 
                     return redirect('list_courses')
         else:
-            messages.error(request,"Invalid username or password.")
+            messages.error(request, "Invalid username or password.")
     form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
 
+def admin_login(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password) 
+            if user is not None:
+                auth_login(request, user)
+                if user is not None and request.user.is_superuser:
+                    return redirect('status_change')
+        messages.error(request, "Invalid login")
+    form = AuthenticationForm()
+    return render(request, 'admin/login.html', { 'form': form })
+
+def admin_course_list(request):
+    return render(request, 'admin/course_list.html')
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_report(request):
+    return render(request, 'index.html')
 
 def landing(request):
     return render(request, 'registration/login_and_register.html')

@@ -271,6 +271,31 @@
         color: black; 
         margin-right: 5px;
     }
+
+    .watch, .watch-header {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        text-align: center;
+    }
+
+    .watch {
+        background-color: #e0e0e0;
+        padding: 5px 0;
+        /* border-bottom: 1px solid #ccc; */
+        margin-bottom: 5px;
+        border-radius: 5px;
+    }
+
+    .watch-header {
+        margin-top: 10px;
+        font-style: italic;
+        background-color: #bcbcbc;
+        padding: 4px 0;
+    }
+    .watches-per-section {
+        display: flex;
+        flex-direction: column;
+    }
     
     
     
@@ -308,10 +333,17 @@
 
 <div class="second-header">
 
-    <div class="tabs">
-        <a href="{% url 'list_courses' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Courses</a>
-        <a href="{% url 'watchlist_view' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">My Watchlist</a>
-    </div>
+    {% if is_admin %}
+        <div class="tabs">
+            <a href="{% url 'status_change' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Dashboard</a>
+            <a href="{% url 'admin_report' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">Admin Report</a>
+        </div>
+    {% else %}
+        <div class="tabs">
+            <a href="{% url 'list_courses' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Courses</a>
+            <a href="{% url 'watchlist_view' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">My Watchlist</a>
+        </div>
+    {% endif %}
 
 
     <div class="forms-container">
@@ -328,6 +360,9 @@
                 <option value="number">Course Code</option>
                 <option value="instructor">Professor</option>
                 <option value="days">Days</option>
+                {% if is_admin %}
+                <option value="number_of_watches">Number of Watches</option>
+                {% endif %}
             </select>
             <input type="hidden" name="course_code" value="{{ course_code }}">
             <button type="submit">Sort</button>
@@ -351,7 +386,9 @@
                     <span>Location</span>
                     <span>Professor</span>
                     <span>Open Seats</span>
-                   <!-- <span>Watch</span> -->
+                    {% if is_admin %}
+                    <span>Number of Watches</span>
+                    {% endif %}
                 </div>
                 <div class="course-section">
                     <span>{{ course.course_type }}</span>
@@ -359,6 +396,11 @@
                     <span>{{ course.location }}</span>
                     <span>{{ course.instructor}}</span>
                     <span>{{ course.seats_available }}</span>
+                    {% if is_admin %}
+                    <span>{{ course.watch_set.all.count }}</span>
+                    {% endif %}
+
+                    {% if not is_admin %}
                     <span>
                         <form action="{% url 'toggle_watchlist' course.id %}" method="post">
                             {% csrf_token %}
@@ -366,7 +408,6 @@
                             <input type="hidden" name="sort_by" value="{{ sort_by }}">
                             <input type="hidden" name="origin" value="course_list">
 
-    
                             <div class="watch-dropdown">
                                 <button type="button" class="watch-dropbtn">
                                     <i class="fa fa-eye" aria-hidden="true"></i> Watch
@@ -391,7 +432,30 @@
                             
                         </form>
                     </span>
+                    {% endif %}
                 </div>
+                {% if is_admin %}
+                <div class="watch-header">
+                    <span>Student Name</span>
+                    <span>Email</span>
+                    <span>Eagle ID</span>
+                    <span>Major</span>
+                    <span>Spots on Watch</span>
+                </div>
+                <div>
+                    <div class="watches-per-section">
+                        {% for watch in course.watch_set.all %}
+                        <div class="watch">
+                            <span>{{ watch.student.username }}</span>
+                            <span>{{ watch.student.email }}</span>
+                            <span>{{ watch.student.eagle_id }}</span>
+                            <span>{{ watch.student.major }}</span>
+                            <span>{{ watch.num_students }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </details>
     {% endfor %}

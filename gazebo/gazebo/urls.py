@@ -3,6 +3,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path('admin/', include('gazebo.admin_urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     # path('register/student/', views.student_register, name='student_register'),
@@ -14,7 +15,7 @@ urlpatterns = [
     path('courses/', views.list_courses, name='list_courses'),
     path('', views.landing, name='landing'),
     # path("", views.index, name="index"),
-    path('status/', views.status_change, name='status_change'),
+    # path('status/', views.status_change, name='status_change'),
     # path('login/', views.login_view, name='login')
     path('course_offering_api/', views.course_offering_api, name='course_offering_api'),
     path('waitlist_activity_api/', views.waitlist_activity_api, name='waitlist_activity_api'),

@@ -157,8 +157,8 @@
                     <p>{{ message }}</p>
                 {% endfor %}
             </div>
-        {% endif %}
-            <h3>First time here? Register:</h3>
+            {% endif %}
+            <h3>Welcome! Click an option to get started:</h3>
             <div class="button-container">
                 <div class="button-wrapper">
                     <a href="{% url 'login' %}" class="btn btn-secondary custom-btn square-button">
@@ -169,7 +169,7 @@
                     </a>
                 </div>
                 <div class="button-wrapper">
-                    <a href="{% url 'admin_register' %}" class="btn btn-secondary custom-btn square-button">
+                    <a href="{% url 'admin_login' %}" class="btn btn-secondary custom-btn square-button">
                         <div class="icon-container">
                             <img src="{% static 'admin.png' %}" alt="Admin Icon" class="admin-icon">
                         </div>
@@ -178,11 +178,6 @@
                 </div>
             </div>
             
-            <h3>or</h3>
-            <a href="{% url 'login' %}" class="btn btn-secondary sso-button">
-                <img src="{% static 'key.png' %}" alt="Key Icon" class="sso-icon">
-                Sign in with SSO
-            </a>
         </div>
     </div>
     {% block inner_content %}
