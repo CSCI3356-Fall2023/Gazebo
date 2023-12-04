@@ -62,7 +62,7 @@ def check_course_availability():
 
 def start_scheduler():
     if not scheduler.running:
-        scheduler.add_job(check_course_availability, "interval", hours=1/60)
+        scheduler.add_job(check_course_availability, "interval", hours=6)
         scheduler.start()
 
 start_scheduler()
