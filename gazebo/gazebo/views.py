@@ -157,14 +157,6 @@ def list_courses(request):
     else:
         courses = courses.order_by(sort_by)
 
-    # if sort_by == 'number_of_watches':
-    #     courses = courses.annotate(number_of_watches=Count('watch'))
-
-    # courses = courses.order_by(sort_by)
-
-    # watch_prefetch = Prefetch('watch_set', queryset=Watch.objects.select_related('student'))
-    # courses = Course.objects.filter(query).prefetch_related(watch_prefetch).order_by(sort_by)
-
     paginator = Paginator(courses, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -260,7 +252,36 @@ def admin_course_list(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_report(request):
-    return render(request, 'index.html')
+    email = request.user.email
+
+    filter_metric = request.GET.get('filter_metric', '')
+    filter_value = request.GET.get('filter_value', '') 
+
+    courses = Course.objects.all()
+
+    # top level stats
+    num_students_with_watches = Watch.objects.values('student').distinct().count()
+    watches = Watch.objects.all()
+    num_watches = len(watches)
+    most_watched_course = Course.objects.values().annotate(number_of_watches=Count('watch')).order_by('-number_of_watches')[0]
+
+    if filter_metric == 'department':
+        courses = courses.filter(number__icontains=filter_value)
+    elif filter_metric == 'instructor':
+        courses = courses.filter(instructor__icontains=filter_value)
+    elif filter_metric == 'course':
+        courses = courses.filter(name__icontains=filter_value)
+
+    if filter_metric:
+        watches = watches.filter(course__in=courses)
+
+    return render(request, 'admin/admin_report.html', {
+        'email': email,
+        'num_students_with_watches' : num_students_with_watches,
+        'num_watches': num_watches,
+        'most_watched_course': most_watched_course,
+        "watches": watches
+    })
 
 def landing(request):
     return render(request, 'registration/login_and_register.html')
