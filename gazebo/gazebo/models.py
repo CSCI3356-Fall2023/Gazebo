@@ -63,10 +63,18 @@ class CustomUser(AbstractUser):
     department = models.CharField(max_length=100, blank=True, null=True)
 
 class Watch(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=None)
     num_students = models.IntegerField(default=0)
 
+class History(models.Model):
+    semester = models.CharField(max_length=15)
+    first_name = models.CharField(max_length=15)
+    last_name = models.CharField(max_length=20)
+    course_name = models.CharField(max_length=255)
+    instructor = models.CharField(max_length=255)
+    number = models.CharField(max_length=10) 
+    
 class Meta:
     unique_together = ('student', 'course')
     

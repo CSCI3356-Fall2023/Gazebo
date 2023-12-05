@@ -1,9 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
-import pandas as pd
-from gazebo.models import Course, SystemState
 from django.contrib.auth.forms import AuthenticationForm
-from gazebo.models import CustomUser, Course, Watch
+from gazebo.models import CustomUser, Course, Watch, SystemState, History
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -11,7 +9,7 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Prefetch, Count
+from django.db.models import Q, Prefetch, Count, F
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.core.paginator import Paginator
@@ -140,6 +138,9 @@ def index(request):
 
 @login_required
 def list_courses(request):
+    if(status_finder() == "closed"):
+        return render(request, 'courses/closed.html')
+    
     email = request.user.email
     user = request.user
     
@@ -151,7 +152,9 @@ def list_courses(request):
         query &= Q(number__icontains=course_code)
 
     courses = Course.objects.filter(query).annotate(number_of_watches=Count('watch'))
-
+    if not courses:
+        course_filler()
+        list_courses(request)
     if sort_by == 'number_of_watches':
         courses = courses.order_by('-number_of_watches')
     else:
@@ -250,37 +253,79 @@ def admin_login(request):
 def admin_course_list(request):
     return render(request, 'admin/course_list.html')
 
+def sem():
+    month = datetime.datetime.now().month
+    semester = ''
+    year = datetime.datetime.now().year
+    if month >= 10:
+        semester = "Spring " + str(year + 1)
+    elif month < 3:
+        semester = "Spring " + str(year)
+    else:
+        semester = "Fall " + str(year)
+    return semester
+
+def fill_history():
+    watches = Watch.objects.all()
+    for watch in watches:
+        semester = sem()
+        first_name = watch.student.first_name
+        last_name = watch.student.last_name
+        course_name = watch.course.name
+        instructor = watch.course.instructor
+        if(not History.objects.all().filter(semester=semester, first_name=first_name, last_name=last_name, course_name=course_name, instructor=instructor).exists()):
+            new_history = History(
+                semester = semester,
+                first_name = first_name,
+                last_name = last_name,
+                course_name = course_name,
+                instructor = instructor
+            )
+            new_history.save()
+        else:
+            continue
+
 @user_passes_test(lambda u: u.is_superuser)
-def admin_report(request):
+def admin_report(request, semester=sem(), cont=True):
     email = request.user.email
 
     filter_metric = request.GET.get('filter_metric', '')
     filter_value = request.GET.get('filter_value', '') 
 
-    courses = Course.objects.all()
+    
+    fill_history()
 
     # top level stats
-    num_students_with_watches = Watch.objects.values('student').distinct().count()
-    watches = Watch.objects.all()
-    num_watches = len(watches)
-    most_watched_course = Course.objects.values().annotate(number_of_watches=Count('watch')).order_by('-number_of_watches')[0]
+    if(semester == sem() and cont):
+        admin_report(request, False)
 
+    num_students_with_watches = History.objects.filter(semester=semester).values('first_name', 'last_name').distinct().count()
+    watches = History.objects.filter(semester=semester)
+    num_watches = len(watches)
+    course_counts = watches.values('course_name').annotate(entry_count=Count('course_name'))
+    most_watched_course = course_counts.order_by('-entry_count').first()
+    max_watches = 0
+    if most_watched_course:
+        max_watches = watches.filter(course_name = most_watched_course['course_name']).count()
+    courses = []
     if filter_metric == 'department':
-        courses = courses.filter(number__icontains=filter_value)
+        courses = watches.filter(number__icontains=filter_value)
     elif filter_metric == 'instructor':
-        courses = courses.filter(instructor__icontains=filter_value)
+        courses = watches.filter(instructor__icontains=filter_value)
     elif filter_metric == 'course':
-        courses = courses.filter(name__icontains=filter_value)
+        courses = watches.filter(course_name__icontains=filter_value)
 
     if filter_metric:
-        watches = watches.filter(course__in=courses)
+        watches = courses
 
     return render(request, 'admin/admin_report.html', {
         'email': email,
         'num_students_with_watches' : num_students_with_watches,
         'num_watches': num_watches,
         'most_watched_course': most_watched_course,
-        "watches": watches
+        "watches": watches,
+        'semester': semester,
+        'max_watches': max_watches
     })
 
 def landing(request):
@@ -291,14 +336,22 @@ def status_change(request):
         return redirect('temp_view')
     
     email = request.user.email
+    print(email)
     semester = sem()
-    state = status_finder()
-    entry = SystemState.objects.all().filter(semester=semester)[0]
+    print(semester)
+    states = SystemState.objects.all()
     if(request.GET.get('mybtn')):
+        semester = request.GET.get('sem', '')
+        entry = SystemState.objects.all().filter(semester=semester)[0]
         toggle(entry)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    message = make_message(semester, state)
-    return render(request, 'admin/status_change.html', {'message': message, 'email': email})
+    
+    if(request.GET.get('mybtn2')):
+        semester = request.GET.get('sem')
+        target_url = reverse('admin_report', args=[semester])
+        return redirect(target_url)
+    #message = make_message(semester, state)
+    return render(request, 'admin/status_change.html', {'email': email, 'states': states})
 
 def make_message(semester, state):
     message = semester + " watch period is " + f"{state}"
@@ -316,24 +369,15 @@ def status_finder():
         new_entry.save()
     return state
 
-def sem():
-    month = datetime.datetime.now().month
-    semester = ''
-    year = datetime.datetime.now().year
-    if month >= 10:
-        semester = "Spring " + str(year + 1)
-    elif month < 3:
-        semester = "Spring " + str(year)
-    else:
-        semester = "Fall " + str(year)
-    return semester
-
 def toggle(entry):
     new_state = ""
     if entry.state == "closed":
         new_state = "open"
     else:
         new_state = "closed"
+        fill_history()
+        Watch.objects.all().delete()
+        Course.objects.all().delete()
     entry.state = new_state
     entry.save()
     return new_state
@@ -402,7 +446,7 @@ def course_filler():
         location = " ".join(locationPieces)
         capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
         current_enrollment = ''
-        if dfResponse2[0]['activitySeatCount'] == []:
+        if not dfResponse2[0]['activitySeatCount']['used']:
             current_enrollment = 20
         else:
             current_enrollment = dfResponse2[0]['activitySeatCount']['used']

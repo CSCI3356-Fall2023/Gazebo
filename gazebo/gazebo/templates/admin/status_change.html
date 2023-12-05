@@ -392,25 +392,31 @@
 <div class="left-content">
     <div class="tabs">
         <a href="{% url 'list_courses' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Courses</a>
-        <a href="{% url 'admin_report' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">Admin Report</a>
+        <a href="{% url 'admin_report_default' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">Admin Report</a>
     </div>
 </div>
 <h1 class="toggle-header">Toggle Registration Period State</h1>
 
-
+{% for state in states %}
 <div class="gray-bar">
     <div class="semester-label">Semester</div>
-    <div class="semester-value">Spring 2024</div>
+    <div class="semester-value">{{ state.semester }}</div>
     <div class="change-state-label">Change State</div>
     <!-- <label class="switch">
         <input type="submit" name="mybtn">
         <span class="slider"></span>
     </label> -->
     <form action="#" method="get" class="switch">
+        <input type="hidden" name="sem" value="{{ state.semester }}">
         <input type="submit" class="slider" value="Toggle" name="mybtn">
     </form>
-    {{ message }}
+    <form action="#" method="get" class="switch">
+        <input type="hidden" name="sem" value="{{ state.semester }}">
+        <input type="submit" class="slider" value="Report" name="mybtn2">
+    </form>
+    {{ state.state }}
 </div>
+{% endfor %}
 
 
 {% endblock %}

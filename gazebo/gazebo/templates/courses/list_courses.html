@@ -336,7 +336,7 @@
     {% if is_admin %}
         <div class="tabs">
             <a href="{% url 'status_change' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Dashboard</a>
-            <a href="{% url 'admin_report' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">Admin Report</a>
+            <a href="{% url 'admin_report_default' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">Admin Report</a>
         </div>
     {% else %}
         <div class="tabs">

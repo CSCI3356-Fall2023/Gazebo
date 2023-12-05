@@ -419,7 +419,7 @@
     </div>
 </div>
 <div class="report-header-container">
-    <h2>Admin Report for SEMESTER YEAR</h2>
+    <h2>Admin Report for {{semester}}</h2>
     <div class="top-level-stats-header">
         <span>Number of Students Watching</span>
         <span>Total Number of Watches</span>
@@ -428,10 +428,10 @@
     <div class="top-level-stats">
         <span>{{ num_students_with_watches }}</span>
         <span>{{ num_watches }}</span>
-        <span>{{ most_watched_course.name }} with {{ most_watched_course.number_of_watches }} watches </span>
+        <span>{{ most_watched_course.course_name }} with {{ max_watches }} watches </span>
     </div>
     <hr>
-    <form method="GET" id="filterForm" action="{% url 'admin_report' %}">
+    <form method="GET" id="filterForm" action="{% url 'admin_report' semester='{{ semester }}' %}">
         <label for="filter_metric">Filter by:</label>
         <select id="filter_metric" name="filter_metric">
             <!-- department, course, professor, course level.  -->
@@ -446,16 +446,16 @@
     
         <button type="submit">Filter</button>
     </form>
-    <form method="GET" action="{% url 'admin_report' %}">
+    <form method="GET" action="{% url 'admin_report' semester='{{ semester }}'%}">
         <button type="submit">Clear Filter</button>
     </form>
 </div>
 <div class="watches-container">
     {% for watch in watches %}
     <div class="watch">
-        <div>Course Name: {{ watch.course.name }}</div>
-        <div>Professor: {{ watch.course.instructor }}</div>
-        <div>Student: {{ watch.student.first_name }} {{ watch.student.last_name }}</div>
+        <div>Course Name: {{ watch.course_name }}</div>
+        <div>Professor: {{ watch.instructor }}</div>
+        <div>Student: {{ watch.first_name }} {{ watch.last_name }}</div>
     </div>
     {% endfor %}
 </div>

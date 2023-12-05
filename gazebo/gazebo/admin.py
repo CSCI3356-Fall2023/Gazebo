@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gazebo.models import Course, SystemState, CustomUser
+from gazebo.models import Course, SystemState, CustomUser, History
 
 @admin.register(Course)
 # need to be able to filter by period of day (morning, afternoon, evening),
@@ -22,6 +22,10 @@ class SystemStateAdmin(admin.ModelAdmin):
     list_display = ['semester', 'state']
     search_fields = ['semester']
 
+@admin.register(History)
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ['semester', 'first_name', 'last_name', 'course_name', 'instructor', 'number']
+    search_fields = ['semester', 'first_name', 'last_name', 'course_name', 'instructor', 'number']
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
