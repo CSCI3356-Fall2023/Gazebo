@@ -34,11 +34,8 @@ def waitlist_activity_api(id):
         return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
 def check_course_availability():
-
     Watch = apps.get_model("gazebo", "Watch")
-
     watches = Watch.objects.all()
-
     for watch in watches:
         number = watch.course.number
         response1 = course_by_code(number)

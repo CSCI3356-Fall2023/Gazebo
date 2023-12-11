@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm
-from gazebo.models import CustomUser, Course, Watch, SystemState, History
+from gazebo.models import CustomUser, Course, Watch, Section, SystemState, History
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -38,10 +38,12 @@ oauth.register(
     server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
 )
 
+
 def login(request):
     return oauth.auth0.authorize_redirect(
         request, request.build_absolute_uri(reverse("callback"))
     )
+
 
 def callback(request):
     token = oauth.auth0.authorize_access_token(request)
@@ -75,14 +77,18 @@ def callback(request):
     else: 
         return redirect('list_courses')
 
+
 def is_valid_email(email):
     return email.endswith("@bc.edu")
+
 
 def get_first_name(name):
     return name.split()[0] if name else ""
 
+
 def get_last_name(name):
     return name.split()[-1] if name and len(name.split()) > 1 else ""
+
 
 def additional_info(request):
     email_from_auth0 = request.session.get('email')
@@ -112,6 +118,7 @@ def additional_info(request):
 
     return render(request, 'registration/registration.html', {'form': form})
 
+
 def logout(request):
     request.session.clear()
 
@@ -126,6 +133,7 @@ def logout(request):
         ),
     )
 
+
 def index(request):
     return render(
         request,
@@ -136,22 +144,21 @@ def index(request):
         },
     )
 
+
 @login_required
 def list_courses(request):
-    if(status_finder() == "closed"):
+    if (status_finder() == "closed"):
         return render(request, 'courses/closed.html')
     
     email = request.user.email
     user = request.user
-    
     course_code = request.GET.get('course_code', '')
     sort_by = request.GET.get('sort_by', 'number') 
-
     query = Q()
     if course_code:
         query &= Q(number__icontains=course_code)
 
-    courses = Course.objects.filter(query).annotate(number_of_watches=Count('watch'))
+    courses = Course.objects.filter(query)
     if not courses:
         course_filler()
         list_courses(request)
@@ -164,9 +171,8 @@ def list_courses(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    
-    watched_course_ids = list(Watch.objects.filter(student=user).values_list('course', flat=True))
-    watched_course_ids = [int(id) for id in watched_course_ids] 
+    watched_section_ids = list(Watch.objects.filter(student=user).values_list('section', flat=True))
+    watched_section_ids = [int(id) for id in watched_section_ids] 
 
     is_admin = request.user.is_superuser
 
@@ -179,13 +185,14 @@ def list_courses(request):
         'is_admin': is_admin,
     })
 
+
 @login_required
 @require_POST
-def toggle_watchlist(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+def toggle_watchlist(request, section_id):
+    section = get_object_or_404(Section, id=section_id)
     user = request.user
 
-    watch_entry, created = Watch.objects.get_or_create(student=user, course=course)
+    watch_entry, created = Watch.objects.get_or_create(student=user, section=section)
 
     # if we create a watch entry before, toggle it by removing from Watch table
     if not created:
@@ -203,6 +210,7 @@ def toggle_watchlist(request, course_id):
         sort_by = request.POST.get('sort_by', '')
         return redirect(f'/courses/?course_code={course_code}&sort_by={sort_by}')
 
+
 # admin register is now going to be only done through superuser
 def admin_register(request):
     if request.method == 'POST':
@@ -214,7 +222,6 @@ def admin_register(request):
     else:
         form = AdminSignUpForm()
     return render(request, 'registration/registration.html', {'form': form})
-
 
 
 def login_view(request):
@@ -235,6 +242,7 @@ def login_view(request):
     form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
 
+
 def admin_login(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -250,8 +258,10 @@ def admin_login(request):
     form = AuthenticationForm()
     return render(request, 'admin/login.html', { 'form': form })
 
+
 def admin_course_list(request):
     return render(request, 'admin/course_list.html')
+
 
 def sem():
     month = datetime.datetime.now().month
@@ -265,15 +275,16 @@ def sem():
         semester = "Fall " + str(year)
     return semester
 
+
 def fill_history():
     watches = Watch.objects.all()
     for watch in watches:
         semester = sem()
         first_name = watch.student.first_name
         last_name = watch.student.last_name
-        course_name = watch.course.name
-        instructor = watch.course.instructor
-        if(not History.objects.all().filter(semester=semester, first_name=first_name, last_name=last_name, course_name=course_name, instructor=instructor).exists()):
+        course_name = watch.section.course_number
+        instructor = watch.section.instructor
+        if (not History.objects.all().filter(semester=semester, first_name=first_name, last_name=last_name, course_name=course_name, instructor=instructor).exists()):
             new_history = History(
                 semester = semester,
                 first_name = first_name,
@@ -284,6 +295,7 @@ def fill_history():
             new_history.save()
         else:
             continue
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_report(request, semester=sem(), cont=True):
@@ -328,8 +340,10 @@ def admin_report(request, semester=sem(), cont=True):
         'max_watches': max_watches
     })
 
+
 def landing(request):
     return render(request, 'registration/login_and_register.html')
+
 
 def status_change(request):
     if(not request.user.is_superuser):
@@ -353,9 +367,11 @@ def status_change(request):
     #message = make_message(semester, state)
     return render(request, 'admin/status_change.html', {'email': email, 'states': states})
 
+
 def make_message(semester, state):
     message = semester + " watch period is " + f"{state}"
     return message
+
 
 def status_finder():
     semester = sem()
@@ -369,6 +385,7 @@ def status_finder():
         new_entry.save()
     return state
 
+
 def toggle(entry):
     new_state = ""
     if entry.state == "closed":
@@ -378,6 +395,7 @@ def toggle(entry):
         fill_history()
         Watch.objects.all().delete()
         Course.objects.all().delete()
+        Section.objects.all().delete()
     entry.state = new_state
     entry.save()
     return new_state
@@ -394,9 +412,10 @@ def course_offering_api():
     if response.status_code == 200:
         data = response.json()
         return JsonResponse(data, safe=False)
-    else:
-        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
-    
+
+    return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+
+
 def waitlist_activity_api(id):
     code = id
     if code is None:
@@ -407,69 +426,250 @@ def waitlist_activity_api(id):
     if response.status_code == 200:
         data = response.json()
         return JsonResponse(data, safe=False)
-    else:
-        return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
     
-# daysConverter = {"M": "Monday", "Tu": "Tuesday", "W": "Wednesday", "Th": "Thursday", "F": "Friday", "S": "Saturday", "Su": "Sunday"}
+    return JsonResponse({'error': 'Failed to fetch data from the API'}, status=500)
+
+def period_determiner(start_time):
+    start_time_pieces = start_time.split(":")
+    if "AM" in start_time:
+        return "Morning"
+    
+    if "PM" in start_time:
+        if int(start_time_pieces[0]) in range(1,5) or start_time_pieces[0] == "12":
+            return "Afternoon"
+        
+        return "Evening"
+    
+    print("should never get here! something went wrong!")
+    return None
+        
+
 def course_filler():
     response = course_offering_api()
     dfResponse = json.loads(response.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
-
-        # prevent dupicates 
+        # prevent duplicates 
         if Course.objects.filter(number=number).exists():
-            continue 
+            continue
 
         response2 = waitlist_activity_api(courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
         if response2.status_code != 200 or dfResponse2 == []:
             continue
+
         name = courseIndex['courseOffering']['name'].split(' -- ')[-1]
-        course_level = name[4] + "000"
+        course_level = number[4] + "000"
         description = courseIndex['courseOffering']['descr']['formatted']
-        schedules = dfResponse2[0]['scheduleNames'][0].split()
-        formatArray = dfResponse2[0]['activityOffering']['typeKey'].split(".")
-        course_type = formatArray[len(formatArray) - 1]
-        section = dfResponse2[0]['activityOffering']['activityCode']
-        instructor = ''
-        if dfResponse2[0]['activityOffering']['instructors'] == []:
-            instructor = "None"
-        else:
-            instructor = dfResponse2[0]['activityOffering']['instructors'][0]['personName']
-        days = schedules[len(schedules) - 2]
-        time_range_str = schedules[len(schedules) - 1]  
-        #time = time_range_str.split("-")
-        #start_time = time[0][0:len(time[0]) - 2]  
-        #end_time = time[1][0:len(time[1]) - 2]
-        locationPieces = schedules[0:len(schedules) - 2]
-        location = " ".join(locationPieces)
-        capacity = dfResponse2[0]['activityOffering']['maximumEnrollment']
-        current_enrollment = ''
-        if not dfResponse2[0]['activitySeatCount']['used']:
-            current_enrollment = 20
-        else:
-            current_enrollment = dfResponse2[0]['activitySeatCount']['used']
+        for section_index in dfResponse2:
+            course_number = number
+            formatArray = section_index['activityOffering']['typeKey'].split(".")
+            course_type = formatArray[len(formatArray) - 1]
+            section_number = section_index['activityOffering']['activityCode']
+            section_id = section_index['activityOffering']['id']
+            instructor = ''
+            if section_index['activityOffering']['instructors'] == []:
+                instructor = "None"
+
+            else:
+                instructor = section_index['activityOffering']['instructors'][0]['personName']
+
+            capacity = section_index['activityOffering']['maximumEnrollment']
+            current_enrollment = ''
+            if section_index['activitySeatCount'] == [] or section_index['activitySeatCount'] == None:
+                current_enrollment = 20
+
+            else:
+                current_enrollment = section_index['activitySeatCount']['used']
+
+            schedules = section_index['scheduleNames']
+            for index in range(0, len(schedules)):
+                if " Noon" in schedules[index]: 
+                    new_entry = schedules[index].replace(" Noon", "PM")
+                    schedules[index] = new_entry
+
+            start_time = ""
+            end_time = ""
+            days = ""
+            location = ""
+            period_of_day = ""
+            if "By Arrangement" in schedules or "BY ARRANGEMENT" in schedules or "By arrangement" in schedules:
+                start_time = "By Arrangement"
+                end_time = "By Arrangement"
+                days = "By Arrangement"
+                location = "By Arrangement"
+                period_of_day = "By Arrangement"
+
+            elif "On-line Asynchronous" in schedules:
+                start_time = "Online Asynchronous"
+                end_time = "Online Asynchronous"
+                days = "Online Asynchronous"
+                location = "Online Asynchronous"
+                period_of_day = "Online Asynchronous"
+
+            elif "ONLINE COURSE" in schedules:
+                start_time = "Online Course"
+                end_time = "Online Course"
+                days = "Online Course"
+                location = "Online Course"
+                period_of_day = "Online Course"
+
+            else:
+                disgusting_format = False
+                for index in range(0, len(schedules)):
+                    if ("Online Asynchronous" in schedules[index] or "<br/>" in schedules[index] 
+                        or "Library" in schedules[index] or len(schedules) == 3 or "/" in schedules[index] 
+                        or "from" in schedules[index] or "Sunday" in schedules[index] 
+                        or "Auditorium" in schedules[index] or "Sept" in schedules[index]
+                        or "Advising Section" in schedules[index]):
+                        disgusting_format = True
+
+                if disgusting_format == 1:
+                    continue
+
+                location_and_time_pieces = []
+
+                if len(schedules) > 1:
+                    if "HYBRID course." in schedules or "HYBRID COURSE" in schedules:
+                        #location_and_time_pieces = schedules[1].split()
+                        continue
+                    elif "PEP Only" in schedules:
+                        #location_and_time_pieces = schedules[0].split()
+                        #days = location_and_time_pieces[0]
+                        #times = location_and_time_pieces[1].split("-")
+                        #start_time = times[0]
+                        #end_time = times[1]
+                        continue
+                    elif "Meets weekly" in schedules[0] or "Meets weekly" in schedules[1] or "Open to Law School" in schedules[0] or "Open to Law School" in schedules[1]:
+                        #location_and_time_pieces = schedules[0].split()
+                        #locationPieces = location_and_time_pieces[0:len(location_and_time_pieces) - 2]
+                        #location = " ".join(locationPieces)
+                        #days = location_and_time_pieces[len(location_and_time_pieces) - 2]
+                        #times = location_and_time_pieces[len(location_and_time_pieces) - 1].split("-")
+                        #start_time = time_formatter(times[0])
+                        #end_time = time_formatter(times[1]) 
+                        continue
+                    elif "room TBA" in schedules[0] or "room TBA" in schedules[1]:
+                        location = "TBA"
+                    elif "Hybrid." in schedules[0] or "Hybrid." in schedules[1]:
+                        #location_and_time_pieces = schedules[0].split()
+                        #days = location_and_time_pieces[0]
+                        #times = location_and_time_pieces[1].split("-")
+                        #if "AM" not in times[0] and "PM" not in times[0]:
+                            #start_time = times[0] + times[1][len(times[1]) - 3:len(times[1]) - 1]
+                        #else:
+                            #start_time = times[0]
+                        #end_time = times[1]
+                        continue
+                    elif "Hybrid Course" in schedules:
+                        continue
+                    elif "McMullen Museum" in schedules:
+                        print("Museum")
+                        location = "McMullen Museum"
+                        days = schedules[0]
+                        times = schedules[1]
+                        continue
+                    elif len(schedules[0]) == len(schedules[1]):
+                        continue
+                    elif schedules[1] == "International Human Rights Practicum":
+                        continue
+                    elif "This lab section is not offered in Fall 2023." in schedules:
+                        continue
+                    else:
+                        sub1 = ""
+                        sub2 = []
+                        location_and_time_pieces.append(schedules[0])
+                        location_and_time_pieces.append(schedules[1])
+                        # print(f"location_and_time_pieces: {location_and_time_pieces}")
+                        if "Hall" in location_and_time_pieces[0] and "Hall" in location_and_time_pieces[1]:
+                            sub1 = location_and_time_pieces[1]
+                            sub2 = sub1.split()
+                            location = " ".join(sub2[0:len(sub2) - 3])
+                            days = sub2[len(sub2) - 3]
+                            times = sub2[len(sub2) - 1].split("-")
+                            start_time = times[0]
+                            end_time = times[1]
+                            period_of_day = period_determiner(start_time)
+                            continue
+
+                        if "AM" in location_and_time_pieces[0] or "PM" in location_and_time_pieces[0]:
+                            location = location_and_time_pieces[1]
+                            days_and_times = location_and_time_pieces[0].split()
+                            days = days_and_times[0]
+                            times = days_and_times[1].split("-")
+                            print(times)
+                            start_time = times[0]
+                            end_time = times[1]
+                            period_of_day = period_determiner(start_time)
+
+                        if "AM" in location_and_time_pieces[1] or "PM" in location_and_time_pieces[1]:
+                            location = location_and_time_pieces[0]
+                            days_and_times = location_and_time_pieces[1].split()
+                            days = days_and_times[0]
+                            times = days_and_times[1].split("-")
+                            start_time = times[0]
+                            end_time = times[1]
+                            period_of_day = period_determiner(start_time)
+
+                else:
+                    location_and_time_pieces = schedules[0].split()
+                    if len(location_and_time_pieces) == 2:
+                        if "Hall" in location_and_time_pieces:
+                            location = location_and_time_pieces[0]
+                            # print(f"location_and_time_pieces: {location_and_time_pieces}")
+                            days_and_times = location_and_time_pieces[1].split()
+                            # print(f"days_and_times: {days_and_times}")
+                            days = days_and_times[0]
+                            # print(f"days: {days}")
+                            times = days_and_times[1].split("-")
+                            start_time = times[0]
+                            end_time = times[1]
+                            period_of_day = period_determiner(start_time)
+
+                        else:
+                            days = location_and_time_pieces[0]
+                            times = location_and_time_pieces[1].split("-")
+                            start_time = times[0]
+                            end_time = times[1]
+                            period_of_day = period_determiner(start_time)
+
+                    else:
+                        # print(f"location_and_time_pieces: {location_and_time_pieces}")
+                        locationPieces = location_and_time_pieces[0:len(location_and_time_pieces) - 2]
+                        location = " ".join(locationPieces)
+                        # print(f"location: {location}")
+                        days = location_and_time_pieces[len(location_and_time_pieces) - 2]
+                        # print(f"days: {days}")
+                        times = location_and_time_pieces[len(location_and_time_pieces) - 1].split("-")
+                        start_time = times[0]
+                        end_time = times[1]
+                        period_of_day = period_determiner(start_time)
+
+            new_section = Section(
+                course_number = course_number,
+                section_number = section_number,
+                section_id = section_id,
+                course_type = course_type,
+                instructor = instructor,
+                days = days,
+                location = location,
+                start_time = start_time, 
+                end_time = end_time,
+                period_of_day = period_of_day,
+                capacity = capacity,
+                current_enrollment = current_enrollment
+            )
+            new_section.save()
+            
         new_course = Course(
             number = number,
             name = name,
-            # course_level = course_level,
-            course_type = course_type,
-            description = description,
-            section = section,
-            instructor = instructor,
-            days = days,
-            #start_time = start_time,
-            start_time = '14:30:59',
-            end_time = '14:30:59',
-            #end_time = end_time,
-            location = location,
-            capacity = capacity,
-            current_enrollment = current_enrollment
+            course_level = course_level,
+            description = description
         )
-
         new_course.save()
 
+course_filler()
 # def toggle_watchlist(request, course_id):
 #     if request.method == 'POST':
 #         user = request.user
@@ -486,7 +686,7 @@ def course_filler():
 def watchlist_view(request):
     user = request.user
     watches = Watch.objects.filter(student=user)
-    courses = Course.objects.filter(watch__in=watches)
+    courses = Section.objects.filter(watch__in=watches)
     return render(request, 'watchlist.html', {'courses': courses})
 
 def temp_view(request):
