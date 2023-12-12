@@ -15,6 +15,8 @@ from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import user_passes_test
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 
 # OAuth2 Imports
 import json
@@ -336,9 +338,7 @@ def status_change(request):
         return redirect('temp_view')
     
     email = request.user.email
-    print(email)
     semester = sem()
-    print(semester)
     states = SystemState.objects.all()
     if(request.GET.get('mybtn')):
         semester = request.GET.get('sem', '')
@@ -352,6 +352,17 @@ def status_change(request):
         return redirect(target_url)
     #message = make_message(semester, state)
     return render(request, 'admin/status_change.html', {'email': email, 'states': states})
+
+def download_report(request):
+    semester = request.GET.get('sem', 'default_semester_value')
+    context = {'semester': semester}
+
+    rendered_html = render_to_string('admin/admin_report.html', context, request=request)
+
+    response = HttpResponse(rendered_html, content_type='application/octet-stream')
+
+    response['Content-Disposition'] = 'attachment; filename="admin_report.html"'
+    return response
 
 def make_message(semester, state):
     message = semester + " watch period is " + f"{state}"

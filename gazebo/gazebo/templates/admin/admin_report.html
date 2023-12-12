@@ -381,16 +381,23 @@
 
     .report-header-container {
         text-align: center;
+        margin-bottom: 1rem;
     }
     .watches-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
     }
     .watch {
-        background-color: rgb(175, 175, 175);
+        background-color: #D9D9D9;
         border-radius: 5px;
         margin: 5px;
+        padding: 1rem;
     }
+
+    #filterForm {
+        margin-bottom: 1rem;
+    }
+
     
 </style>
 
@@ -444,7 +451,7 @@
         <label for="filter_value">Enter value:</label>
         <input type="text" id="filter_value" name="filter_value">
     
-        <button type="submit">Filter</button>
+        <button type="submit" class="filter-submit">Filter</button>
     </form>
     <form method="GET" action="{% url 'admin_report' semester='{{ semester }}'%}">
         <button type="submit">Clear Filter</button>
@@ -453,9 +460,9 @@
 <div class="watches-container">
     {% for watch in watches %}
     <div class="watch">
-        <div>Course Name: {{ watch.course_name }}</div>
-        <div>Professor: {{ watch.instructor }}</div>
-        <div>Student: {{ watch.first_name }} {{ watch.last_name }}</div>
+        <div class="course_name"><b>Course Name:</b> {{ watch.course_name }}</div>
+        <div class="professor"><b>Professor:</b> {{ watch.instructor }}</div>
+        <div class="student"><b>Student:</b> {{ watch.first_name }} {{ watch.last_name }}</div>
     </div>
     {% endfor %}
 </div>
