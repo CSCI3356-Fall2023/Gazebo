@@ -1,19 +1,25 @@
 from django.contrib import admin
-from gazebo.models import Course, SystemState, CustomUser, History
+from gazebo.models import Course, SystemState, Section, Watch, CustomUser, History
 
 @admin.register(Course)
-# need to be able to filter by period of day (morning, afternoon, evening),
-# day of the week, professor, course level
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ['number', 'name', 'instructor', 
-                    'current_enrollment', 'capacity', 
-                    'description', 'section', 'days', 
-                    'start_time', 'end_time', 'location',
-                    'num_watches', 'is_open', 'course_type']
-    search_fields = ['name', 'instructor', 'number', 
-                     'is_open', 'days', 'start_time', 
-                     'end_time', 'num_watches', 'location', 
-                     'course_type']
+    list_display = ['number', 'name', 'course_level', 'description']
+    search_fields = ['number', 'name', 'course_level', 'description']
+
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ['instructor', 'current_enrollment', 'capacity', 
+                    'section_number', 'days', 'start_time', 
+                    'end_time', 'location', 'num_watches', 
+                    'is_open', 'course_type', 'period_of_day']
+    search_fields = ['instructor', 'is_open', 'days', 
+                     'start_time', 'end_time', 'num_watches', 
+                     'location', 'course_type', 'period_of_day']
+
+@admin.register(Watch)
+class WatchAdmin(admin.ModelAdmin):
+    list_display = ['student', 'section', 'num_students']
+    search_fields = ['student', 'section', 'num_students']
 
 
 # Need configuration for other models

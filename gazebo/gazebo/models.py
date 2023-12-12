@@ -5,33 +5,27 @@ from django.utils.translation import gettext as _
 import gazebo.settings
 
 class Course(models.Model):
+    number = models.CharField(max_length=10)
+    name = models.CharField(max_length=255)
+    course_level = models.CharField(max_length=10, default = '')
+    description = models.TextField()
+
+class Section(models.Model):
     COURSE_TYPES = [
         ('lecture', 'Lecture'),
         ('lab', 'Lab'),
         ('discussion', 'Discussion'),
     ]
 
-    DAYS_CHOICES = [
-        ('sunday', 'Sunday'),
-        ('monday', 'Monday'),
-        ('tuesday', 'Tuesday'),
-        ('wednesday', 'Wednesday'),
-        ('thursday', 'Thursday'),
-        ('friday', 'Friday'),
-        ('saturday', 'Saturday')
-    ]
-    
-    number = models.CharField(max_length=10)
-    name = models.CharField(max_length=255)
-    # course_level = models.CharField(max_length=10)
+    course_number = models.CharField(max_length=10, default = '')
     course_type = models.CharField(max_length=10, choices=COURSE_TYPES)
-    description = models.TextField()
-    section = models.CharField(max_length=10)
+    section_number = models.CharField(max_length=10)
+    section_id = models.CharField(max_length=255, default ='', blank=True, null=True)
     instructor = models.CharField(max_length=255)
-    # look into making days field a list
     days = models.CharField(max_length=255)
-    start_time = models.TimeField(blank=True)
-    end_time = models.TimeField(blank=True)
+    start_time = models.CharField(max_length=255, blank=True, null=True)
+    end_time = models.CharField(max_length=255, blank=True, null=True)
+    period_of_day = models.CharField(max_length=255, blank=True, null=True)
     location = models.CharField(max_length=255)
     capacity = models.IntegerField(default=0)
     current_enrollment = models.IntegerField(default=0)
@@ -39,12 +33,13 @@ class Course(models.Model):
     is_open = models.BooleanField(default=True)
     if current_enrollment == capacity:
         is_open = False
+
     @property
     def seats_available(self):
         if self.capacity - self.current_enrollment < 0:
             return 0
-        else:
-            return self.capacity - self.current_enrollment
+        
+        return self.capacity - self.current_enrollment
 
 class Log(models.Model):
     student_id = models.CharField(max_length=10)
@@ -64,7 +59,7 @@ class CustomUser(AbstractUser):
 
 class Watch(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=None)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, default=None)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, default=None)
     num_students = models.IntegerField(default=0)
 
 class History(models.Model):
