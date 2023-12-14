@@ -384,6 +384,9 @@
     .admin-report-btn{
         background-color: #5A5A5A;
         color: white;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 4px 8px;
         border-radius: 5px;
     }
 
@@ -467,16 +470,11 @@
 {% for state in states %}
 <div class="gray-bar">
     <div class="semester-value">{{ state.semester }}</div>
-    <form action="#" method="get">
-        <input type="hidden" name="sem" value="{{ state.semester }}">
-        <input type="submit" class="admin-report-btn" value="Admin Report" name="mybtn2">
-    </form>
+    <a href="{% url 'admin_report' state.semester %}" class="admin-report-btn">Admin Report</a> 
     <a href="{% url 'download_report' %}?sem={{ state.semester }}" class="download-btn">Download Report</a>
-    <form action="#" method="get" class="switch {% if state.state == 'open' %}is_on{% endif %}">
+    <a href="{% url 'status_change' %}?sem={{ state.semester }}" class="switch {% if state.state == 'open' %}is_on{% endif %}">
         <div class="{% if state.state == 'open' %}on{% else %}closed{% endif %}"></div>
-        <input type="hidden" name="sem" value="{{ state.semester }}">
-        <input type="submit" class="slider" value="">
-    </form>
+    </a>
 </div>
 {% endfor %}
 

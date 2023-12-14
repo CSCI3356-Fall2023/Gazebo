@@ -342,16 +342,25 @@ def status_change(request):
     email = request.user.email
     semester = sem()
     states = SystemState.objects.all()
-    if (request.GET.get('mybtn')):
+
+    print(request.GET)
+    if (request.GET.get('sem')):
         semester = request.GET.get('sem', '')
         entry = SystemState.objects.all().filter(semester=semester)[0]
         toggle(entry)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+    # if (request.GET.get('mybtn')):
+    #     print('not in toggle')
     
-    if (request.GET.get('mybtn2')):
-        semester = request.GET.get('sem')
-        target_url = reverse('admin_report', args=[semester])
-        return redirect(target_url)
+    # print(request.GET)
+    # print(request.GET.get('change_state'))
+    # print(request.GET.get('sem'))
+    # if (request.GET.get('change_state') and request.GET.get('sem')):
+    #     print('in toggle')
+    #     semester = request.GET.get('sem')
+    #     # target_url = reverse('admin_report', args=[semester])
+    #     return redirect('status_change')
     return render(request, 'admin/status_change.html', {'email': email, 'states': states})
 
 def download_report(request):
@@ -585,7 +594,7 @@ def course_filler():
                             times = days_and_times[1].split("-")
                             print(times)
                             start_time = times[0]
-                            if (times[1]):
+                            if (len(times) > 1 and times[1]):
                                 end_time = times[1]
                             period_of_day = period_determiner(start_time)
 
@@ -595,7 +604,8 @@ def course_filler():
                             days = days_and_times[0]
                             times = days_and_times[1].split("-")
                             start_time = times[0]
-                            end_time = times[1]
+                            if (len(times) > 1 and times[1]):
+                                end_time = times[1]
                             period_of_day = period_determiner(start_time)
 
                 else:
