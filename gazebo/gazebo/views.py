@@ -167,7 +167,7 @@ def list_courses(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    watched_course_ids = list(Watch.objects.filter(student=user).values_list('course', flat=True))
+    watched_course_ids = list(Watch.objects.filter(student=user).values_list('section', flat=True))
     watched_course_ids = [int(id) for id in watched_course_ids] 
 
     is_admin = request.user.is_superuser
@@ -585,7 +585,8 @@ def course_filler():
                             times = days_and_times[1].split("-")
                             print(times)
                             start_time = times[0]
-                            end_time = times[1]
+                            if (times[1]):
+                                end_time = times[1]
                             period_of_day = period_determiner(start_time)
 
                         if "AM" in location_and_time_pieces[1] or "PM" in location_and_time_pieces[1]:
