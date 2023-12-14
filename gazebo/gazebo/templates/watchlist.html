@@ -188,22 +188,22 @@
     <thead>
         <tr>
             <th>Course ID</th>
-            <th>Course Name</th>
+            <th>Course Type</th>
             <th>Professor</th>
             <th>Days</th>
             <th>Open Seats</th>
         </tr>
     </thead>
     <tbody>
-    {% for course in courses %}
+    {% for section in sections %}
         <tr>
-            <td>{{ course.number }}</td>
-            <td>{{ course.name }}</td>
-            <td>{{ course.instructor }}</td>
-            <td>{{ course.days }}</td>
-            <td>{{ course.seats_available }}</td>
+            <td>{{ section.course_number }}</td>
+            <td>{{ section.course_type }}</td>
+            <td>{{ section.instructor }}</td>
+            <td>{{ section.days }}</td>
+            <td>{{ section.seats_available }}</td>
             <td>
-                <form action="{% url 'toggle_watchlist' course.id %}" method="post">
+                <form action="{% url 'toggle_watchlist' section.section_number section.course_number %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="origin" value="watchlist">
                     <button type="submit" class="unwatch-btn">Unwatch</button>

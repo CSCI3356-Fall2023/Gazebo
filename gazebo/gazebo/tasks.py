@@ -48,14 +48,16 @@ def check_course_availability():
             dfResponse2 = json.loads(response2.content)
             if response2.status_code != 200 or dfResponse2 == []:
                 continue
-            current_enrollment = 0
-            if dfResponse2[0]['activitySeatCount'] == []:
-                continue
-            else:
-                current_enrollment = dfResponse2[0]['activitySeatCount']['used']
+            current_enrollment = -1
+            for section_index in dfResponse2:
+                if watch.section.section_number == section_index['activityOffering']['activityCode']:
+                    if section_index['activitySeatCount'] == []:
+                        continue
+                    else:
+                        current_enrollment = section_index['activitySeatCount']['used']
             # Email capabilities
-            student_email = watch.student.email            
-            if current_enrollment < watch.course.capacity:
+            student_email = watch.student.email         
+            if current_enrollment < watch.section.capacity and current_enrollment >= 0:
                 send_mail(f'{number} is open!',  f'{number} is open!', settings.EMAIL_HOST_USER, [student_email], fail_silently=True)
                 print(f'{number} is open!')
 

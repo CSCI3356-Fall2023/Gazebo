@@ -155,6 +155,9 @@ def list_courses(request):
     
     # Since we're watching by sections, I'm not sure if we even want to annotate or sort by watches anymore. -James
     courses = Course.objects.filter(query).annotate(number_of_watches=Count('num_watches'))
+    course_numbers = [course.number for course in courses]
+    sections = Section.objects.filter(course_number__in=course_numbers)
+
     if not courses:
         course_filler()
         list_courses(request)
@@ -171,7 +174,7 @@ def list_courses(request):
     watched_course_ids = [int(id) for id in watched_course_ids] 
 
     is_admin = request.user.is_superuser
-
+    watches = Watch.objects.all()
     return render(request, 'courses/list_courses.html', {
         'page_obj': page_obj,
         'email': email,
@@ -179,17 +182,19 @@ def list_courses(request):
         'sort_by': sort_by,
         'watched_course_ids': watched_course_ids,
         'is_admin': is_admin,
+        'sections': sections,
+        'watches': watches,
     })
 
 @login_required
 @require_POST
-def toggle_watchlist(request, course_id):
-    section = get_object_or_404(Section, id=course_id)
+def toggle_watchlist(request, section_number, course_number):
+    section = get_object_or_404(Section, section_number=section_number, course_number=course_number)
     user = request.user
 
     watch_entry, created = Watch.objects.get_or_create(student=user, section=section)
 
-    course = get_object_or_404(Course, number=course_id)
+    course = get_object_or_404(Course, number=course_number)
     # if we create a watch entry before, toggle it by removing from Watch table
     if not created:
         watch_entry.delete()
@@ -343,7 +348,6 @@ def status_change(request):
     semester = sem()
     states = SystemState.objects.all()
 
-    print(request.GET)
     if (request.GET.get('sem')):
         semester = request.GET.get('sem', '')
         entry = SystemState.objects.all().filter(semester=semester)[0]
@@ -435,7 +439,6 @@ def period_determiner(start_time):
         
         return "Evening"
     
-    print("should never get here! something went wrong!")
     return "Error!"
         
 
@@ -559,7 +562,6 @@ def course_filler():
                     elif "Hybrid Course" in schedules:
                         continue
                     elif "McMullen Museum" in schedules:
-                        print("Museum")
                         location = "McMullen Museum"
                         days = schedules[0]
                         times = schedules[1]
@@ -575,7 +577,6 @@ def course_filler():
                         sub2 = []
                         location_and_time_pieces.append(schedules[0])
                         location_and_time_pieces.append(schedules[1])
-                        # print(f"location_and_time_pieces: {location_and_time_pieces}")
                         if "Hall" in location_and_time_pieces[0] and "Hall" in location_and_time_pieces[1]:
                             sub1 = location_and_time_pieces[1]
                             sub2 = sub1.split()
@@ -592,7 +593,6 @@ def course_filler():
                             days_and_times = location_and_time_pieces[0].split()
                             days = days_and_times[0]
                             times = days_and_times[1].split("-")
-                            print(times)
                             start_time = times[0]
                             if (len(times) > 1 and times[1]):
                                 end_time = times[1]
@@ -613,11 +613,8 @@ def course_filler():
                     if len(location_and_time_pieces) == 2:
                         if "Hall" in location_and_time_pieces:
                             location = location_and_time_pieces[0]
-                            # print(f"location_and_time_pieces: {location_and_time_pieces}")
                             days_and_times = location_and_time_pieces[1].split()
-                            # print(f"days_and_times: {days_and_times}")
                             days = days_and_times[0]
-                            # print(f"days: {days}")
                             times = days_and_times[1].split("-")
                             start_time = times[0]
                             end_time = times[1]
@@ -631,12 +628,9 @@ def course_filler():
                             period_of_day = period_determiner(start_time)
 
                     else:
-                        # print(f"location_and_time_pieces: {location_and_time_pieces}")
                         locationPieces = location_and_time_pieces[0:len(location_and_time_pieces) - 2]
                         location = " ".join(locationPieces)
-                        # print(f"location: {location}")
                         days = location_and_time_pieces[len(location_and_time_pieces) - 2]
-                        # print(f"days: {days}")
                         times = location_and_time_pieces[len(location_and_time_pieces) - 1].split("-")
                         start_time = times[0]
                         end_time = times[1]
@@ -686,8 +680,8 @@ def course_filler():
 def watchlist_view(request):
     user = request.user
     watches = Watch.objects.filter(student=user)
-    courses = Course.objects.filter(watch__in=watches)
-    return render(request, 'watchlist.html', {'courses': courses})
+    sections = Section.objects.filter(watch__in=watches)
+    return render(request, 'watchlist.html', {'sections': sections})
 
 def temp_view(request):
     return render(request, 'error.html')

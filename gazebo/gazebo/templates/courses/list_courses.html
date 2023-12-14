@@ -391,18 +391,20 @@
                     {% endif %}
                 </div>
                 <div class="course-section">
-                    <span>{{ course.course_type }}</span>
-                    <span>{{ course.days }}</span>
-                    <span>{{ course.location }}</span>
-                    <span>{{ course.instructor}}</span>
-                    <span>{{ course.seats_available }}</span>
+                    {% for section in sections %}
+                    {% if section.course_number == course.number %}
+                    <span>{{ section.course_type }}</span>
+                    <span>{{ section.days }}</span>
+                    <span>{{ section.location }}</span>
+                    <span>{{ section.instructor}}</span>
+                    <span>{{ section.seats_available }}</span>
                     {% if is_admin %}
-                    <span>{{ course.watch_set.all.count }}</span>
+                    <span>{{ section.watch_set.all.count }}</span>
                     {% endif %}
 
                     {% if not is_admin %}
                     <span>
-                        <form action="{% url 'toggle_watchlist' course.id %}" method="post">
+                        <form action="{% url 'toggle_watchlist' section_number=section.section_number course_number=section.course_number %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="course_code" value="{{ course_code }}">
                             <input type="hidden" name="sort_by" value="{{ sort_by }}">
@@ -427,6 +429,8 @@
                         </form>
                     </span>
                     {% endif %}
+                {% endif %}
+                {% endfor %}
                 </div>
                 {% if is_admin %}
                 <div class="watch-header">
@@ -438,14 +442,16 @@
                 </div>
                 <div>
                     <div class="watches-per-section">
-                        {% for watch in course.watch_set.all %}
+                        {% for watch in watches %}
+                        {% if watch.section.course_number == course.number %}
                         <div class="watch">
-                            <span>{{ watch.student.username }}</span>
+                            <span>{{ watch.student.first_name }} {{ watch.student.last_name }}</span>
                             <span>{{ watch.student.email }}</span>
                             <span>{{ watch.student.eagle_id }}</span>
                             <span>{{ watch.student.major }}</span>
                             <span>{{ watch.num_students }}</span>
                         </div>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>
