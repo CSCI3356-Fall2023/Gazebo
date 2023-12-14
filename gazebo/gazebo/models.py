@@ -9,6 +9,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     course_level = models.CharField(max_length=10, default = '')
     description = models.TextField()
+    num_watches = models.IntegerField(default=0)
 
 class Section(models.Model):
     COURSE_TYPES = [

@@ -154,7 +154,7 @@ def list_courses(request):
         query &= Q(number__icontains=course_code)
     
     # Since we're watching by sections, I'm not sure if we even want to annotate or sort by watches anymore. -James
-    courses = Course.objects.filter(query).annotate(number_of_watches=Count('watch'))
+    courses = Course.objects.filter(query).annotate(number_of_watches=Count('num_watches'))
     if not courses:
         course_filler()
         list_courses(request)
@@ -189,11 +189,16 @@ def toggle_watchlist(request, course_id):
 
     watch_entry, created = Watch.objects.get_or_create(student=user, section=section)
 
+    course = get_object_or_404(Course, number=course_id)
     # if we create a watch entry before, toggle it by removing from Watch table
     if not created:
         watch_entry.delete()
     # if not, entry was created and added to watch list so do nothing
     else:
+        watches = course.num_watches
+        watches += 1
+        course.num_watches = watches
+        course.save()
         pass
 
     # handles redirect to the correct page (courselist or watchlist)
@@ -641,7 +646,7 @@ def course_filler():
                 current_enrollment = current_enrollment
             )
             new_section.save()
-            
+
         # prevent duplicates 
         if Course.objects.filter(number=number).exists():
             continue
