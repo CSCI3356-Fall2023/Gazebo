@@ -154,14 +154,14 @@ def list_courses(request):
         query &= Q(number__icontains=course_code)
     
     # Since we're watching by sections, I'm not sure if we even want to annotate or sort by watches anymore. -James
-    courses = Course.objects.filter(query)#.annotate(number_of_watches=Count('watch'))
+    courses = Course.objects.filter(query).annotate(number_of_watches=Count('watch'))
     if not courses:
         course_filler()
         list_courses(request)
-    # if sort_by == 'number_of_watches':
-        # courses = courses.order_by('-number_of_watches')
-    # else:
-    courses = courses.order_by(sort_by)
+    if sort_by == 'number_of_watches':
+        courses = courses.order_by('-number_of_watches')
+    else:
+        courses = courses.order_by(sort_by)
 
     paginator = Paginator(courses, 10) 
     page_number = request.GET.get('page')
@@ -184,10 +184,10 @@ def list_courses(request):
 @login_required
 @require_POST
 def toggle_watchlist(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    section = get_object_or_404(Section, id=course_id)
     user = request.user
 
-    watch_entry, created = Watch.objects.get_or_create(student=user, course=course)
+    watch_entry, created = Watch.objects.get_or_create(student=user, section=section)
 
     # if we create a watch entry before, toggle it by removing from Watch table
     if not created:
@@ -297,8 +297,6 @@ def admin_report(request, semester=sem(), cont=True):
     fill_history()
 
     # top level stats
-    if (semester == sem() and cont):
-        admin_report(request, False)
 
     num_students_with_watches = History.objects.filter(semester=semester).values('first_name', 'last_name').distinct().count()
     watches = History.objects.filter(semester=semester)
@@ -349,7 +347,6 @@ def status_change(request):
         semester = request.GET.get('sem')
         target_url = reverse('admin_report', args=[semester])
         return redirect(target_url)
-    #message = make_message(semester, state)
     return render(request, 'admin/status_change.html', {'email': email, 'states': states})
 
 def download_report(request):
@@ -362,10 +359,6 @@ def download_report(request):
 
     response['Content-Disposition'] = 'attachment; filename="admin_report.html"'
     return response
-
-def make_message(semester, state):
-    message = semester + " watch period is " + f"{state}"
-    return message
 
 def status_finder():
     semester = sem()
@@ -396,11 +389,6 @@ def toggle(entry):
     
 #two api functions: one for calling course list, one for calling section list
 def course_offering_api(): 
-    """ if code is None:
-        response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=ENGL2170")
-    else:
-        response = requests.get(f"http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code={code}")
- """
     response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=#")
     if response.status_code == 200:
         data = response.json()
@@ -442,9 +430,6 @@ def course_filler():
     dfResponse = json.loads(response.content)
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
-        # prevent duplicates 
-        if Course.objects.filter(number=number).exists():
-            continue
 
         response2 = waitlist_activity_api(courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
@@ -460,6 +445,9 @@ def course_filler():
             course_type = formatArray[len(formatArray) - 1]
             section_number = section_index['activityOffering']['activityCode']
             section_id = section_index['activityOffering']['id']
+            # prevent duplicates 
+            if Section.objects.filter(course_number=number, section_id = section_id).exists():
+                continue
             instructor = ''
             if section_index['activityOffering']['instructors'] == []:
                 instructor = "None"
@@ -654,6 +642,10 @@ def course_filler():
             )
             new_section.save()
             
+        # prevent duplicates 
+        if Course.objects.filter(number=number).exists():
+            continue
+
         new_course = Course(
             number = number,
             name = name,

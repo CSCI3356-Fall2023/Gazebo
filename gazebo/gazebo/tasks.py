@@ -40,7 +40,7 @@ def check_course_availability():
     watches = Watch.objects.all()
 
     for watch in watches:
-        number = watch.course.number
+        number = watch.section.course_number
         response1 = course_by_code(number)
         dfResponse1 = json.loads(response1.content)
         if response1 != [] and dfResponse1[0]:
