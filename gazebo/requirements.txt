@@ -27,3 +27,5 @@ urllib3==2.0.6
 crispy-bootstrap5
 django_bootstrap5
 django-multiselectfield
+apscheduler
+django-apscheduler
