@@ -192,7 +192,9 @@ def toggle_watchlist(request, section_number, course_number):
     section = get_object_or_404(Section, section_number=section_number, course_number=course_number)
     user = request.user
 
-    watch_entry, created = Watch.objects.get_or_create(student=user, section=section)
+    num_students = int(request.POST.get('num_students'))
+
+    watch_entry, created = Watch.objects.get_or_create(student=user, section=section, num_students=num_students)
 
     course = get_object_or_404(Course, number=course_number)
     # if we create a watch entry before, toggle it by removing from Watch table
@@ -208,6 +210,7 @@ def toggle_watchlist(request, section_number, course_number):
 
     # handles redirect to the correct page (courselist or watchlist)
     origin = request.POST.get('origin')
+    print(origin)
     if origin == 'watchlist':
         return redirect('watchlist_view')
     
@@ -354,17 +357,6 @@ def status_change(request):
         toggle(entry)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-    # if (request.GET.get('mybtn')):
-    #     print('not in toggle')
-    
-    # print(request.GET)
-    # print(request.GET.get('change_state'))
-    # print(request.GET.get('sem'))
-    # if (request.GET.get('change_state') and request.GET.get('sem')):
-    #     print('in toggle')
-    #     semester = request.GET.get('sem')
-    #     # target_url = reverse('admin_report', args=[semester])
-    #     return redirect('status_change')
     return render(request, 'admin/status_change.html', {'email': email, 'states': states})
 
 def download_report(request):
@@ -681,7 +673,7 @@ def watchlist_view(request):
     user = request.user
     watches = Watch.objects.filter(student=user)
     sections = Section.objects.filter(watch__in=watches)
-    return render(request, 'watchlist.html', {'sections': sections})
+    return render(request, 'watchlist.html', {'watches': watches })
 
 def temp_view(request):
     return render(request, 'error.html')

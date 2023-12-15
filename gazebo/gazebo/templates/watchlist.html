@@ -191,20 +191,23 @@
             <th>Course Type</th>
             <th>Professor</th>
             <th>Days</th>
-            <th>Open Seats</th>
+            <th>Capacity</th>
+            <th>Spots on Watch</th>
         </tr>
     </thead>
     <tbody>
-    {% for section in sections %}
+    {% for watch in watches %}
         <tr>
-            <td>{{ section.course_number }}</td>
-            <td>{{ section.course_type }}</td>
-            <td>{{ section.instructor }}</td>
-            <td>{{ section.days }}</td>
-            <td>{{ section.seats_available }}</td>
+            <td>{{ watch.section.course_number }}</td>
+            <td>{{ watch.section.course_type }}</td>
+            <td>{{ watch.section.instructor }}</td>
+            <td>{{ watch.section.days }}</td>
+            <td>{{ watch.section.seats_available }} / {{ watch.section.capacity }}</td>
+            <td>{{ watch.num_students }} </td>
             <td>
-                <form action="{% url 'toggle_watchlist' section.section_number section.course_number %}" method="post">
+                <form action="{% url 'toggle_watchlist' watch.section.section_number watch.section.course_number %}" method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="num_students" value="{{ watch.num_students }}">
                     <input type="hidden" name="origin" value="watchlist">
                     <button type="submit" class="unwatch-btn">Unwatch</button>
                 </form>

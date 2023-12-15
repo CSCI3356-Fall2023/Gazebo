@@ -192,7 +192,7 @@
     }
     .grid-header, .course-section {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(7, 1fr);
         text-align: center;
     }
     
@@ -206,6 +206,8 @@
         background-color: #f0f0f0;
         padding: 5px 0;
         border-bottom: 1px solid #ccc;
+        grid-row-gap: 15px;
+        align-items: center;
     }
     .watch-dropdown {
         position: relative;
@@ -274,7 +276,7 @@
 
     .watch, .watch-header {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         text-align: center;
     }
 
@@ -295,6 +297,15 @@
     .watches-per-section {
         display: flex;
         flex-direction: column;
+    }
+
+    .row-border:first-child {
+        display: none;
+    }
+
+    .row-border:nth-child(n+2) {
+        border-top: 2px solid gray;
+        grid-column: 1 / 8; 
     }
     
     
@@ -381,11 +392,12 @@
             </summary>
             <div class="course-content">
                 <div class="grid-header">
+                    <span>Section Number</span>
                     <span>Type</span>
                     <span>Days</span>
                     <span>Location</span>
                     <span>Professor</span>
-                    <span>Open Seats</span>
+                    <span>Capacity</span>
                     {% if is_admin %}
                     <span>Number of Watches</span>
                     {% endif %}
@@ -393,11 +405,13 @@
                 <div class="course-section">
                     {% for section in sections %}
                     {% if section.course_number == course.number %}
+                    <div class="row-border"></div>
+                    <span>{{ section.section_number }}</span>
                     <span>{{ section.course_type }}</span>
                     <span>{{ section.days }}</span>
                     <span>{{ section.location }}</span>
                     <span>{{ section.instructor}}</span>
-                    <span>{{ section.seats_available }}</span>
+                    <span>{{ section.seats_available }} / {{ section.capacity }} </span>
                     {% if is_admin %}
                     <span>{{ section.watch_set.all.count }}</span>
                     {% endif %}
@@ -416,11 +430,17 @@
                                     <i class="fa fa-caret-down" aria-hidden="true"></i>
                                 </button>
                                 <div class="watch-dropdown-content">
-                                    <button type="submit" name="action" value="notify_1" class="dropdown-option">
+                                    <button type="submit" name="num_students" value="1" class="dropdown-option">
                                         {% if course.id in watched_course_ids %}
                                             <i class="fa fa-check" aria-hidden="true"></i>
                                         {% endif %}
                                         Notify me when 1 seat opens up
+                                    </button>
+                                    <button type="submit" name="num_students" value="3" class="dropdown-option">
+                                        {% if course.id in watched_course_ids %}
+                                            <i class="fa fa-check" aria-hidden="true"></i>
+                                        {% endif %}
+                                        Notify me when 3 seats opens up
                                     </button>
                                 </div>
                             </div>
@@ -429,7 +449,7 @@
                         </form>
                     </span>
                     {% endif %}
-                {% endif %}
+                    {% endif %}
                 {% endfor %}
                 </div>
                 {% if is_admin %}
@@ -438,6 +458,7 @@
                     <span>Email</span>
                     <span>Eagle ID</span>
                     <span>Major</span>
+                    <span>Section</span>
                     <span>Spots on Watch</span>
                 </div>
                 <div>
@@ -449,6 +470,7 @@
                             <span>{{ watch.student.email }}</span>
                             <span>{{ watch.student.eagle_id }}</span>
                             <span>{{ watch.student.major }}</span>
+                            <span>{{ watch.section.section_number }}</span>
                             <span>{{ watch.num_students }}</span>
                         </div>
                         {% endif %}

@@ -36,11 +36,13 @@ def waitlist_activity_api(id):
 def check_course_availability():
 
     Watch = apps.get_model("gazebo", "Watch")
+    Course = apps.get_model("gazebo", "Course")
 
     watches = Watch.objects.all()
 
     for watch in watches:
         number = watch.section.course_number
+        course_name = Course.objects.get(number=number).name
         response1 = course_by_code(number)
         dfResponse1 = json.loads(response1.content)
         if response1 != [] and dfResponse1[0]:
@@ -57,9 +59,15 @@ def check_course_availability():
                         current_enrollment = section_index['activitySeatCount']['used']
             # Email capabilities
             student_email = watch.student.email         
-            if current_enrollment < watch.section.capacity and current_enrollment >= 0:
-                send_mail(f'{number} is open!',  f'{number} is open!', settings.EMAIL_HOST_USER, [student_email], fail_silently=True)
-                print(f'{number} is open!')
+            open_seats = watch.section.capacity - watch.section.current_enrollment
+            if open_seats > watch.num_students and watch.section.current_enrollment >= 0:
+                message = f"""
+                    {number} {course_name} has open seats! There are at least {watch.num_students} spot(s) available.
+                    
+                    Register now: https://eaen.bc.edu/student-registration/#/
+                """
+                subject = f"{course_name} has open seats!"
+                send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[student_email], fail_silently=True)
 
 
 def start_scheduler():
