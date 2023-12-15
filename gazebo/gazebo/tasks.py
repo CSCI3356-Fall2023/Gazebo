@@ -59,8 +59,8 @@ def check_course_availability():
                         current_enrollment = section_index['activitySeatCount']['used']
             # Email capabilities
             student_email = watch.student.email         
-            open_seats = watch.section.capacity - watch.section.current_enrollment
-            if open_seats > watch.num_students and watch.section.current_enrollment >= 0:
+            open_seats = watch.section.capacity - current_enrollment
+            if open_seats > watch.num_students and current_enrollment >= 0:
                 message = f"""
                     {number} {course_name} has open seats! There are at least {watch.num_students} spot(s) available.
                     

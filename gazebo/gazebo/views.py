@@ -9,9 +9,7 @@ import datetime
 from .forms import StudentSignUpForm, AdminSignUpForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Prefetch, Count, F
-from django.views.decorators.csrf import csrf_exempt
-from django.core.cache import cache
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import user_passes_test
@@ -210,7 +208,6 @@ def toggle_watchlist(request, section_number, course_number):
 
     # handles redirect to the correct page (courselist or watchlist)
     origin = request.POST.get('origin')
-    print(origin)
     if origin == 'watchlist':
         return redirect('watchlist_view')
     
@@ -521,35 +518,14 @@ def course_filler():
 
                 if len(schedules) > 1:
                     if "HYBRID course." in schedules or "HYBRID COURSE" in schedules:
-                        #location_and_time_pieces = schedules[1].split()
                         continue
                     elif "PEP Only" in schedules:
-                        #location_and_time_pieces = schedules[0].split()
-                        #days = location_and_time_pieces[0]
-                        #times = location_and_time_pieces[1].split("-")
-                        #start_time = times[0]
-                        #end_time = times[1]
                         continue
                     elif "Meets weekly" in schedules[0] or "Meets weekly" in schedules[1] or "Open to Law School" in schedules[0] or "Open to Law School" in schedules[1]:
-                        #location_and_time_pieces = schedules[0].split()
-                        #locationPieces = location_and_time_pieces[0:len(location_and_time_pieces) - 2]
-                        #location = " ".join(locationPieces)
-                        #days = location_and_time_pieces[len(location_and_time_pieces) - 2]
-                        #times = location_and_time_pieces[len(location_and_time_pieces) - 1].split("-")
-                        #start_time = time_formatter(times[0])
-                        #end_time = time_formatter(times[1]) 
                         continue
                     elif "room TBA" in schedules[0] or "room TBA" in schedules[1]:
                         location = "TBA"
                     elif "Hybrid." in schedules[0] or "Hybrid." in schedules[1]:
-                        #location_and_time_pieces = schedules[0].split()
-                        #days = location_and_time_pieces[0]
-                        #times = location_and_time_pieces[1].split("-")
-                        #if "AM" not in times[0] and "PM" not in times[0]:
-                            #start_time = times[0] + times[1][len(times[1]) - 3:len(times[1]) - 1]
-                        #else:
-                            #start_time = times[0]
-                        #end_time = times[1]
                         continue
                     elif "Hybrid Course" in schedules:
                         continue
@@ -655,19 +631,6 @@ def course_filler():
             description = description
         )
         new_course.save()
-
-# def toggle_watchlist(request, course_id):
-#     if request.method == 'POST':
-#         user = request.user
-#         course = get_object_or_404(Course, id=course_id)
-#         watch, created = Watch.objects.get_or_create(student=user, course=course)
-#         if not created:
-#             watch.delete()
-#             added = False
-#         else:
-#             added = True
-#         return JsonResponse({'added': added})
-#     return JsonResponse({'status': 'error'}, status=400)
 
 def watchlist_view(request):
     user = request.user
