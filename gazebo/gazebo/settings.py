@@ -152,3 +152,8 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'bc.gazebo@gmail.com'
 EMAIL_HOST_PASSWORD = 'ilju oqkx lxtw byad'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'gazebo-production.up.railway.app'
+]
