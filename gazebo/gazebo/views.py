@@ -396,7 +396,7 @@ def toggle(entry):
     
 #two api functions: one for calling course list, one for calling section list
 def course_offering_api(): 
-    response = requests.get("http://localhost:8080/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=#")
+    response = requests.get("https://springboot-java-production-a5d9.up.railway.app/waitlist/waitlistcourseofferings?termId=kuali.atp.FA2023-2024&code=#")
     if response.status_code == 200:
         data = response.json()
         return JsonResponse(data, safe=False)
@@ -406,9 +406,9 @@ def course_offering_api():
 def waitlist_activity_api(id):
     code = id
     if code is None:
-        response = requests.get("http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
+        response = requests.get("https://springboot-java-production-a5d9.up.railway.app/waitlist/waitlistactivityofferings?courseOfferingId=952e91af-ffb8-471e-b135-04d6d0b02c62")
     else:
-        response = requests.get(f"http://localhost:8080/waitlist/waitlistactivityofferings?courseOfferingId={code}") 
+        response = requests.get(f"https://springboot-java-production-a5d9.up.railway.app/waitlist/waitlistactivityofferings?courseOfferingId={code}") 
 
     if response.status_code == 200:
         data = response.json()

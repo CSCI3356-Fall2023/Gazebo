@@ -1,0 +1,1 @@
+web: cd ./gazebo && python manage.py migrate && gunicorn gazebo.wsgi
