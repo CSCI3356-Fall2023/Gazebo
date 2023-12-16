@@ -307,6 +307,65 @@
         border-top: 2px solid gray;
         grid-column: 1 / 8; 
     }
+    .course-section span {
+        text-transform: capitalize;
+    }
+
+    .sidebar {
+        float: left; 
+        width: 200px; 
+        background-color: #f9f9f9;
+        padding: 20px; 
+        height: 100vh; 
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    }
+
+    .sidebar input[type="text"],
+    .sidebar select {
+        width: 100%; 
+        box-sizing: border-box; 
+        margin-bottom: 10px; 
+    }
+
+
+    .sidebar label {
+        display: block;
+        margin-top: 10px; 
+    }
+
+    .btn-apply-filters {
+        margin-top: 20px;
+    }
+
+
+    .course-container {
+        margin-left: 220px; 
+        padding: 20px; 
+        background-color: #fff; 
+    }
+
+    .btn-apply-filters {
+        margin-top: 10px; 
+        width: 100%; 
+        background-color: #800000; 
+        color: white; 
+        padding: 10px;
+        border: none; 
+        border-radius: 4px;
+        cursor: pointer; 
+    }
+
+    .btn-apply-filters:hover {
+        background-color: #45a049;
+    }
+
+
+    .content:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
     
     
     
@@ -358,11 +417,6 @@
 
 
     <div class="forms-container">
-        <form method="GET" id="filterForm">
-            <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
-            <input type="hidden" name="sort_by" value="{{ sort_by }}">
-            <button type="submit">Filter</button>
-        </form>
 
         <form method="GET" id="sortForm">
             <label for="sort_by">Sort by:</label>
@@ -381,6 +435,42 @@
 
         <a href="{% url 'list_courses' %}">Clear Filters/Sort</a>
     </div>
+</div>
+
+<div class="sidebar">
+    <!-- Filter Form -->
+    <form method="GET" id="filterForm">
+
+        <!-- Day of Week Filter -->
+        <label for="day_of_week">Day of Week:</label>
+        <select id="day_of_week" name="day_of_week">
+            <option value="">Select Day</option>
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="tuesday">Wednesday</option>
+            <option value="tuesday">Thursday</option>
+            <option value="tuesday">Friday</option>
+        </select>
+
+        <label for="professor_search">Search by Professor:</label>
+        <input type="text" id="professor_search" name="professor" placeholder="Professor" value="{{ request.GET.professor|default:'' }}">
+
+        <!-- Department Filter -->
+        <label for="department">Department:</label>
+        <input type="text" id="department" name="department" placeholder="Department">
+
+        <!-- School Filter -->
+        <label for="school">School:</label>
+        <input type="text" id="school" name="school" placeholder="School">
+
+        <!-- Existing Filters Here -->
+        <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn-apply-filters">Apply Filters</button>
+
+
+    </form>
 </div>
 
 <div class="course-container">
@@ -482,9 +572,6 @@
         </details>
     {% endfor %}
 </div>
-
-
-
 
 
 <div class="pagination">

@@ -156,6 +156,44 @@
     .unwatch-btn:hover {
         background-color: #ff6161; /* Lighter red on hover */
     }
+    .user-info-box {
+        background-color: white;
+        padding: 20px;
+        margin-top: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        margin: 20px auto;
+    }
+    
+    .user-info-box label {
+        display: block;
+        margin: 10px 0;
+    }
+    
+    .user-info-box input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .save-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: block;
+        width: 100%;
+    }
+    
+    .save-btn:hover {
+        background-color: #45a049;
+    }
+    
 
 </style>
 
@@ -168,59 +206,32 @@
         <div class="dropdown">
             <button class="dropbtn">{{user}} &#9662; </button>
             <div class="dropdown-content">
+                <a href="{% url 'edit_view' %}" class="edit_info">Edit Info</a>
                 <a href="{% url 'logout' %}" class="logout">Logout</a>
-
         <!-- <input type="search" placeholder="Search"> -->
             </div>
         </div>
     </div>
 </div>
 
-<h3>My Watchlist</h3>
+<h3>Edit Info</h3>
+
+
 
 <div class="tabs">
     <a href="{% url 'list_courses' %}" class="tab-link {% if request.path == '/courses' %}active{% endif %}">Courses</a>
     <a href="{% url 'watchlist_view' %}" class="tab-link {% if request.path == '/list_courses' %}active{% endif %}">My Watchlist</a>
 </div>
 
+<div class="user-info-box">
+    <form method="post" action="{% url 'edit_view' %}"> 
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="save-btn">Save</button>
+    </form>
+    <h3>{{user.eagle_id}}</h3>
+</div>
 
-
-<table class="course-table">
-    <thead>
-        <tr>
-            <th>Course ID</th>
-            <th>Course Type</th>
-            <th>Professor</th>
-            <th>Days</th>
-            <th>Capacity</th>
-            <th>Spots on Watch</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for watch in watches %}
-        <tr>
-            <td>{{ watch.section.course_number }}</td>
-            <td>{{ watch.section.course_type }}</td>
-            <td>{{ watch.section.instructor }}</td>
-            <td>{{ watch.section.days }}</td>
-            <td>{{ watch.section.seats_available }} / {{ watch.section.capacity }}</td>
-            <td>{{ watch.num_students }} </td>
-            <td>
-                <form action="{% url 'toggle_watchlist' watch.section.section_number watch.section.course_number %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="num_students" value="{{ watch.num_students }}">
-                    <input type="hidden" name="origin" value="watchlist">
-                    <button type="submit" class="unwatch-btn">Unwatch</button>
-                </form>
-            </td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="6">You have no courses in your watchlist.</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
 
 
 {% endblock %}

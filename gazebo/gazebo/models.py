@@ -51,6 +51,7 @@ class SystemState(models.Model):
 
 class CustomUser(AbstractUser):
     eagle_id = models.CharField(max_length=20)
+    school = models.CharField(max_length=100, blank=True, null=True)
     major = models.CharField(max_length=100, blank=True, null=True)
     minor = models.CharField(max_length=100, blank=True, null=True)
     is_administrator = models.BooleanField(default=False)
