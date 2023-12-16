@@ -421,10 +421,10 @@
         <form method="GET" id="sortForm">
             <label for="sort_by">Sort by:</label>
             <select id="sort_by" name="sort_by">
-                <option value="name">Course Name</option>
                 <option value="number">Course Code</option>
-                <option value="instructor">Professor</option>
-                <option value="days">Days</option>
+                <option value="name">Course Name</option>
+                <!-- <option value="instructor">Professor</option>
+                <option value="days">Days</option> -->
                 {% if is_admin %}
                 <option value="number_of_watches">Number of Watches</option>
                 {% endif %}
@@ -442,26 +442,36 @@
     <form method="GET" id="filterForm">
 
         <!-- Day of Week Filter -->
-        <label for="day_of_week">Day of Week:</label>
-        <select id="day_of_week" name="day_of_week">
-            <option value="">Select Day</option>
-            <option value="monday">Monday</option>
-            <option value="tuesday">Tuesday</option>
-            <option value="tuesday">Wednesday</option>
-            <option value="tuesday">Thursday</option>
-            <option value="tuesday">Friday</option>
-        </select>
+        <label>Day of Week:</label>
+        <div>
+            <label for="monday">
+                <input id="monday" value="M" name="days[]" type="checkbox" {% if "M" in selected_days %}checked{% endif %}>Monday
+            </label>
+            <label for="tuesday">
+                <input id="tuesday" value="Tu" name="days[]" type="checkbox" {% if "Tu" in selected_days %}checked{% endif %}>Tuesday
+            </label> 
+            <label for="wednesday">
+                <input id="wednesday" value="W" name="days[]" type="checkbox" {% if "W" in selected_days %}checked{% endif %}>Wednesday
+            </label>
+            <label for="thursday">
+                <input id="thursday" value="Th" name="days[]" type="checkbox" {% if "Th" in selected_days %}checked{% endif %}>Thursday
+            </label>
+            <label for="friday">
+                <input id="friday" value="F" name="days[]" type="checkbox" {% if "F" in selected_days %}checked{% endif %}>Friday
+            </label>
+        </div>
 
         <label for="professor_search">Search by Professor:</label>
         <input type="text" id="professor_search" name="professor" placeholder="Professor" value="{{ request.GET.professor|default:'' }}">
 
         <!-- Department Filter -->
         <label for="department">Department:</label>
-        <input type="text" id="department" name="department" placeholder="Department">
+        <input type="text" id="department" name="department" placeholder="Department" value="{{ request.GET.department|default:'' }}">
 
         <!-- School Filter -->
-        <label for="school">School:</label>
-        <input type="text" id="school" name="school" placeholder="School">
+        <!-- i don't think we currently keep track of schools in our models -->
+        <!-- <label for="school">School:</label>
+        <input type="text" id="school" name="school" placeholder="School"> -->
 
         <!-- Existing Filters Here -->
         <input type="text" name="course_code" placeholder="Course Code" value="{{ course_code|default_if_none:'' }}">
@@ -573,11 +583,10 @@
     {% endfor %}
 </div>
 
-
 <div class="pagination">
     <span class="step-links">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}&course_code={{ course_code }}&sort_by={{ sort_by }}">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}&course_code={{ course_code|default:'' }}&sort_by={{ sort_by|default:'number' }}&{{ request.GET.urlencode|safe }}">Previous</a>
         {% endif %}
 
         <span class="current">
@@ -585,7 +594,7 @@
         </span>
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&course_code={{ course_code }}&sort_by={{ sort_by }}">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}&course_code={{ course_code|default:'' }}&sort_by={{ sort_by|default:'number' }}&{{ request.GET.urlencode|safe }}">Next</a>
         {% endif %}
     </span>
 </div>

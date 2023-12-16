@@ -15,7 +15,7 @@ class Section(models.Model):
         ('lab', 'Lab'),
         ('discussion', 'Discussion'),
     ]
-
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='sections')
     course_number = models.CharField(max_length=10, default = '')
     course_type = models.CharField(max_length=10, choices=COURSE_TYPES)
     section_number = models.CharField(max_length=10)

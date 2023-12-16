@@ -136,37 +136,72 @@ def index(request):
         },
     )
 
+def parse_days(selected_days):
+    parsed_days = ""
+    for day in selected_days:
+        parsed_days += day
+    return parsed_days
+
 @login_required
 def list_courses(request):
-    if (status_finder() == "closed"):
+    if status_finder() == "closed":
         return render(request, 'courses/closed.html')
-    
-    email = request.user.email
-    user = request.user
-    
+
+    # initialize query for courses and sections
+    course_query = Q()
+    section_query = Q()
+
+    # course code filter
     course_code = request.GET.get('course_code', '')
-    sort_by = request.GET.get('sort_by', 'number') 
-
-    query = Q()
     if course_code:
-        query &= Q(number__icontains=course_code)
-    
-    # Since we're watching by sections, I'm not sure if we even want to annotate or sort by watches anymore. -James
-    courses = Course.objects.filter(query).annotate(number_of_watches=Count('num_watches'))
-    course_numbers = [course.number for course in courses]
-    sections = Section.objects.filter(course_number__in=course_numbers)
+        course_query &= Q(number__icontains=course_code)
 
-    if not courses:
-        course_filler()
-        list_courses(request)
+    # department filter
+    department = request.GET.get('department')
+    if department:
+        course_query &= Q(number__icontains=department)
+
+    # professor filter
+    professor = request.GET.get('professor')
+    if professor:
+        section_query &= Q(instructor__icontains=professor)
+
+    # days filter
+    selected_days = request.GET.getlist('days[]')
+    if selected_days:
+        selected_days = parse_days(selected_days)  
+        section_query &= Q(days__in=selected_days)
+
+    # apply course filter and annotations
+    # courses = Course.objects.filter(course_query).annotate(number_of_watches=Count('watch'))
+    courses = Course.objects.filter(course_query)
+
+    if len(section_query) > 0:
+        # apply section filter and get distinct course IDs
+        sections = Section.objects.filter(section_query, course_number__in=courses.values_list('number', flat=True))
+        course_ids = Section.objects.filter(section_query, course_number__in=courses.values_list('number', flat=True)).values_list('course_id', flat=True).distinct()
+
+        courses = courses.filter(id__in=course_ids)
+    else:
+        sections = Section.objects.all()
+
+        # sorting logic
+    sort_by = request.GET.get('sort_by', 'number')
     if sort_by == 'number_of_watches':
-        courses = courses.order_by('-number_of_watches')
+        courses = courses.order_by('-num_watches')
     else:
         courses = courses.order_by(sort_by)
+
+    if not courses.exists():
+        course_filler()
+        list_courses(request)
 
     paginator = Paginator(courses, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    email = request.user.email
+    user = request.user
 
     watched_course_ids = list(Watch.objects.filter(student=user).values_list('section', flat=True))
     watched_course_ids = [int(id) for id in watched_course_ids] 
@@ -182,6 +217,7 @@ def list_courses(request):
         'is_admin': is_admin,
         'sections': sections,
         'watches': watches,
+        'selected_days': selected_days,
     })
 
 @login_required
@@ -437,14 +473,19 @@ def course_filler():
     for courseIndex in dfResponse:
         number = courseIndex['courseOffering']['courseOfferingCode']
 
+        course, created = Course.objects.get_or_create(
+            number=number,
+            defaults={
+                'name': courseIndex['courseOffering']['name'].split(' -- ')[-1],
+                'course_level': number[4] + "000",
+                'description': courseIndex['courseOffering']['descr']['formatted']
+            }
+        )
+
         response2 = waitlist_activity_api(courseIndex['courseOffering']['id'])
         dfResponse2 = json.loads(response2.content)
         if response2.status_code != 200 or dfResponse2 == []:
             continue
-
-        name = courseIndex['courseOffering']['name'].split(' -- ')[-1]
-        course_level = number[4] + "000"
-        description = courseIndex['courseOffering']['descr']['formatted']
         for section_index in dfResponse2:
             course_number = number
             formatArray = section_index['activityOffering']['typeKey'].split(".")
@@ -604,33 +645,35 @@ def course_filler():
                         end_time = times[1]
                         period_of_day = period_determiner(start_time)
 
-            new_section = Section(
-                course_number = course_number,
-                section_number = section_number,
-                section_id = section_id,
-                course_type = course_type,
-                instructor = instructor,
-                days = days,
-                location = location,
-                start_time = start_time, 
-                end_time = end_time,
-                period_of_day = period_of_day,
-                capacity = capacity,
-                current_enrollment = current_enrollment
-            )
-            new_section.save()
+            if not Section.objects.filter(course_number=number, section_id=section_id).exists():
+                new_section = Section(
+                    course=course,  
+                    course_number=course_number,
+                    section_number=section_number,
+                    section_id=section_id,
+                    course_type=course_type,
+                    instructor=instructor,
+                    days=days,
+                    location=location,
+                    start_time=start_time, 
+                    end_time=end_time,
+                    period_of_day=period_of_day,
+                    capacity=capacity,
+                    current_enrollment=current_enrollment
+                )
+                new_section.save()
 
         # prevent duplicates 
-        if Course.objects.filter(number=number).exists():
-            continue
+        # if Course.objects.filter(number=number).exists():
+        #     continue
 
-        new_course = Course(
-            number = number,
-            name = name,
-            course_level = course_level,
-            description = description
-        )
-        new_course.save()
+        # new_course = Course(
+        #     number = number,
+        #     name = name,
+        #     course_level = course_level,
+        #     description = description
+        # )
+        # new_course.save()
 
 def watchlist_view(request):
     user = request.user
