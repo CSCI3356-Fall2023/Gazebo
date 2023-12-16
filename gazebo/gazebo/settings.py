@@ -155,5 +155,5 @@ EMAIL_HOST_PASSWORD = 'ilju oqkx lxtw byad'
 
 
 CSRF_TRUSTED_ORIGINS = [
-    'gazebo-production.up.railway.app'
+    'https://gazebo-production.up.railway.app/'
 ]
