@@ -1,0 +1,5 @@
+.landing-container {
+    background-image: url('/static/images/bc_campus.jpeg'); 
+    text-align: center; 
+    padding: 5%;
+}

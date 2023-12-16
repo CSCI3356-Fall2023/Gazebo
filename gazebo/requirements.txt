@@ -29,3 +29,5 @@ django_bootstrap5
 django-multiselectfield
 apscheduler
 django-apscheduler
+whitenoise
+gunicorn==19.7.1
