@@ -25,6 +25,9 @@ from urllib.parse import quote_plus, urlencode
 
 import requests
 
+import plotly.express as px
+import plotly.io as pio
+pio.renderers.default = "notebook_connected"
 
 oauth = OAuth()
 
@@ -363,6 +366,8 @@ def admin_report(request, semester=sem(), cont=True):
     if filter_metric:
         watches = courses
 
+    major_graph = admin_report_major()
+    top_courses_graph = admin_report_top_course()
     return render(request, 'admin/admin_report.html', {
         'email': email,
         'num_students_with_watches' : num_students_with_watches,
@@ -370,7 +375,11 @@ def admin_report(request, semester=sem(), cont=True):
         'most_watched_course': most_watched_course,
         "watches": watches,
         'semester': semester,
-        'max_watches': max_watches
+        'max_watches': max_watches,
+        'major_graph': major_graph,
+        'top_courses_graph': top_courses_graph,
+
+
     })
 
 def landing(request):
@@ -684,4 +693,31 @@ def watchlist_view(request):
 def temp_view(request):
     return render(request, 'error.html')
 
+def admin_report_major():
+    majors = Watch.objects.values('student__major').annotate(count=Count('student__major')).exclude(student__major='')
+    major_names = [item['student__major'] for item in majors]
+    major_counts = [item['count'] for item in majors]
+    # Creating the Plotly figure
+    fig = px.pie(names=major_names, values=major_counts, title= 'Majors of Students Watching', hole= .5,  color_discrete_sequence=px.colors.sequential.RdBu)
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    major_graph = fig.to_html(full_html=False, config={'displayModeBar': False})
+    # Rendering the template with the graph
+    return major_graph
 
+def admin_report_top_course():
+    query_results = Course.objects.order_by('-num_watches')[:10]
+    course_names = [item.number for item in query_results]
+    watch_counts = [item.num_watches for item in query_results]
+
+    fig = px.bar(x=course_names, y=watch_counts, title='Top 10 Most Watched Courses', color_discrete_sequence=px.colors.sequential.RdBu)
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis_title="", 
+        yaxis_title ="count"
+       
+    )
+    return fig.to_html(full_html=False, config={'displayModeBar': False})

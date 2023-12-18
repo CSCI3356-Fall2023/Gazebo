@@ -398,6 +398,18 @@
         margin-bottom: 1rem;
     }
 
+
+        .graphs-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Adjust the space between graphs */
+        }
+    
+        .graph {
+            flex: 1; /* Each graph takes equal amount of space */
+            max-width: 50%; /* Optional: max-width for larger screens */
+        }
+
     
 </style>
 
@@ -437,6 +449,27 @@
         <span>{{ num_watches }}</span>
         <span>{{ most_watched_course.course_name }} with {{ max_watches }} watches </span>
     </div>
+    <hr>
+    <div class="graphs-container">
+        
+        <div class="graph">
+            {% if top_courses_graph %}
+                {{ top_courses_graph|safe }}
+            {% else %}
+                <p>No data available for Top Courses Graph.</p>
+            {% endif %}
+        </div>
+
+        <div class="graph">
+            {% if major_graph %}
+                {{ major_graph|safe }}
+            {% else %}
+                <p>No data available for Major Graph.</p>
+            {% endif %}
+        </div>
+    
+    </div>
+
     <hr>
     <form method="GET" id="filterForm" action="{% url 'admin_report' semester='{{ semester }}' %}">
         <label for="filter_metric">Filter by:</label>

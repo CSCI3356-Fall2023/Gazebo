@@ -31,3 +31,4 @@ apscheduler
 django-apscheduler
 whitenoise
 gunicorn==19.7.1
+plotly
